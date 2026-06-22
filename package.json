@@ -1,5 +1,5 @@
 {
-  "name": "farodenegocios-web-tmp",
+  "name": "farodenegocios-web",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -9,7 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.108.2",
     "next": "16.2.9",
+    "openai": "^6.44.0",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
@@ -21,6 +23,6 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5.9.3"
   }
 }
