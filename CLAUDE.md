@@ -42,7 +42,7 @@ fiable es el estudio que desarrolla soluciones tecnológicas a medida para la Py
 **Curiosidad → Encuesta → Informe (espejo) → Contacto con fiable.**
 
 1. La PyME entra picada por la curiosidad de **compararse con su rubro** (gancho de entrada barato, sobre sí misma).
-2. Responde la encuesta de 9 preguntas (menos de 3 minutos).
+2. Responde la encuesta de 11 preguntas (menos de 3 minutos; las 2 últimas antes del email son opcionales).
 3. Recibe un informe que **le pega donde duele y le sirve aunque nunca contacte a fiable**.
 4. El informe cierra mostrándole **cómo otra PyME de su rubro resolvió ese dolor** — ahí aparece fiable, como solución, no como aviso.
 
@@ -52,16 +52,51 @@ Esta cadena es lo primero que se construye y se valida. Todo lo demás es secund
 
 El informe SIEMPRE combina dos capas. Esta estructura es la que genera la resonancia y no es negociable:
 
-- **Capa de contexto (datos reales del sector).** Sale de fuentes públicas (ver sección 12). Da autoridad. Ejemplo: "el rubro X cayó 8,9% interanual; los que reforzaron lo digital son los que aguantaron". NUNCA se inventa (ver regla 11.1).
-- **Capa de espejo (el dolor del usuario, en sus palabras).** Sale de las respuestas de la encuesta, sobre todo de la pregunta abierta. Le devuelve su propio problema, nombrado y puesto en número. Es lo que genera el "estos me entienden".
+- **Capa de contexto (caracterización del sector).** Describe el momento del rubro del usuario con honestidad. Si hay un dato cargado en `datos_sector` para ese rubro (nota cualitativa, variación), se usa como apoyo. Si no hay dato específico, se hace una caracterización verdadera y general del comercio PyME argentino en ese tipo de rubro (consumo, inflación, qué resiste, qué no). **NUNCA se inventa una cifra exacta sin respaldo** (regla 11.1): se puede decir "viene golpeado" o "lo digital es de lo poco que crece", pero nunca "cayó 8,9% interanual" sin fuente verificable. Esta capa funciona para cualquier rubro, no depende de tener un registro numérico en la base.
+- **Capa de espejo (el dolor del usuario, en sus palabras y, cuando hay datos, en números).** Sale de las respuestas de la encuesta: sobre todo de la pregunta abierta (qué tarea le pesa más), y cuando están disponibles, del volumen de consultas y las horas semanales que consume esa tarea. Cuando ambos datos están presentes y son relevantes al dolor expresado, el informe los combina para dar una dimensión concreta y aproximada ("manejás entre 30 y 50 consultas por día y esto te come unas 10 horas semanales: casi dos días de trabajo por semana en algo que no genera ventas"). Siempre como estimación declarada, nunca como cifra exacta.
 
-El informe es bueno cuando el dueño piensa: *"entienden mi sector Y entienden mi problema puntual."*
+El informe es bueno cuando el dueño piensa: *"entienden mi sector Y entienden mi problema puntual — y además me lo pusieron en números."*
 
-## 8. La encuesta (9 preguntas)
+La capa de contexto nunca bloquea el informe: si no hay dato de sector, el informe igual se genera con una caracterización honesta. Nunca falla ni queda vacío por falta de dato numérico.
 
-Orden psicológico: fácil → dolor → email al final (nunca el email primero).
+### Arquitectura contenido / marco (decisión de diseño, no negociable)
 
-1. ¿A qué se dedica tu negocio? *(define el rubro y el benchmark)*
+El **texto del informe es agnóstico de fiable**. Ni el cuerpo de la sección sector, ni el espejo, ni el cierre mencionan la marca fiable ni contienen ningún CTA. El texto es contenido puro: genera deseo, no vende.
+
+El **trabajo de marca y conversión lo hace el marco** que rodea al informe:
+- **Bloque FOMO** (entre espejo y cierre): tarjeta de fondo oscuro (oculta en PDF) que refuerza cualitativamente la urgencia de adoptar tecnología. Sin cifras inventadas — solo afirmaciones verdaderas sobre la tendencia general.
+- **CTA post-cierre**: tarjeta índigo que aparece inmediatamente después del cierre. Es donde fiable se presenta, en caliente. Copy propio (qué es fiable, por qué tiene sentido para una PyME) y llamado a la acción.
+- **Footer**: refuerzo secundario de marca.
+
+Separación estricta: **contenido genera deseo → marco capta**. Si en algún momento el texto del informe menciona "fiable" o incluye un CTA, está roto — hay que corregirlo.
+
+### Visualización de contexto (indicadores cualitativos)
+
+La sección "Así está el rubro" incluye tres indicadores visuales que orientan al lector antes del texto. Son **siempre cualitativos** y reflejan verdades estables del contexto PyME argentino:
+
+| Indicador | Señal | Por qué es verdad estable |
+|---|---|---|
+| Consumo minorista | ↓ En baja | Refleja el contexto macro de 2024-2026 |
+| Ventas digitales | ↑ En alza | Tendencia secular confirmada por CACE |
+| Tecnología a medida | ↑ Ahora accesible | La IA bajó los costos de desarrollo radicalmente |
+
+**NUNCA agregar un cuarto indicador con cifras de porcentaje o número de empresas.** Si se quiere enriquecer con dato real verificado (ej: variación CAME para ese rubro), puede mostrarse en el card de la sección, no en los indicadores de tendencia.
+
+### PDF / Descarga
+
+El informe tiene botón "Descargar PDF" que usa `window.print()` con estilos de impresión dedicados. El PDF imprime:
+- Cabecera de impresión simple
+- Los tres bloques de contenido (sector, espejo, cierre)
+- Los indicadores cualitativos (se imprimen con fondos tenues)
+- Footer con farodenegocios.com.ar
+
+**El PDF omite** (todos con `print:hidden`): header web, botón de descarga, bloque FOMO, CTA fiable.
+
+## 8. La encuesta (11 preguntas)
+
+Orden psicológico: fácil → contexto operativo → dolor → cuantificación del dolor → email al final (nunca el email primero).
+
+1. ¿A qué se dedica tu negocio? *(define el rubro)*
 2. ¿Cuántas personas trabajan con vos? (solo / 2-5 / 6-20 / más)
 3. ¿Hace cuánto que tenés el negocio?
 4. ¿Cómo te llegan la mayoría de los pedidos o consultas? (WhatsApp / teléfono / local / redes / web)
@@ -69,15 +104,20 @@ Orden psicológico: fácil → dolor → email al final (nunca el email primero)
 6. Cuando te llega una consulta, ¿en cuánto solés responder? (al toque / en horas / al otro día / como puedo)
 7. ¿Vendés online? (no / por redes a mano / tengo tienda online)
 8. Si pudieras sacarte de encima una sola tarea repetitiva, ¿cuál sería? *(TEXTO LIBRE — la pregunta más valiosa; alimenta el espejo)*
-9. ¿A dónde te mandamos tu informe? (email)
+9. ¿Cuántos clientes o consultas manejás por día, más o menos? *(OPCIONAL — rangos: <10 / 10-30 / 30-50 / >50; alimenta la cuantificación del espejo)*
+10. ¿Cuántas horas por semana, más o menos, te consume esa tarea que más te pesa? *(OPCIONAL — rangos: <5 / 5-10 / 10-20 / >20; alimenta la cuantificación del espejo)*
+11. ¿A dónde te mandamos tu informe? (email)
 
-Cada pregunta cerrada alimenta el benchmark; la 8 alimenta el espejo. No agregar preguntas sin que sirvan a una de las dos capas (cada pregunta extra es fricción).
+Preguntas 9 y 10 van después del dolor (pregunta 8) porque el usuario ya nombró su tarea — en ese contexto, ponerle número se siente natural, no intrusivo. Son opcionales: si el usuario las saltea, el informe sigue funcionando en modo cualitativo. Si las responde, el espejo gana una dimensión concreta que hace la diferencia.
+
+No agregar preguntas sin que sirvan a la capa de contexto o a la capa de espejo (cada pregunta extra es fricción).
 
 ## 9. Tono y voz
 
 - Argentino, cercano, de igual a igual. Nada de jerga técnica ni corporativa.
 - El informe acompaña, no vende. Suena a "te entendemos", no a "contratanos".
 - Honesto siempre. Antes que exagerar, se dice menos.
+- **El texto del informe no menciona "fiable" en ningún lado.** La marca aparece solo en el CTA que sigue al informe (ver sección 7 — Arquitectura contenido/marco). Esto es intencional: un informe que suena a aviso pierde credibilidad; uno que da valor real genera el deseo que el CTA capitaliza.
 
 ## 10. Orden de construcción
 
@@ -87,7 +127,7 @@ Cada pregunta cerrada alimenta el benchmark; la 8 alimenta el espejo. No agregar
 
 ## 11. Reglas innegociables
 
-1. **El dato no se falsea, porque el dato es el producto.** Si no hay dato real para respaldar una afirmación del informe, no se inventa: se usa un dato real disponible, un rango prudente y declarado, o se omite. Una IA generando "informe del sector X" sin datos reales detrás INVENTA números — eso está prohibido. Esto vale para informes y para artículos.
+1. **El dato no se falsea, porque el dato es el producto.** Si no hay dato real para respaldar una afirmación del informe, no se inventa: se usa un dato real disponible, un rango prudente y declarado, o se omite. Una IA generando "informe del sector X" sin datos reales detrás INVENTA números — eso está prohibido. Esto vale para informes, artículos, **y visualizaciones**: ningún gráfico, indicador o barra puede mostrar una cifra estadística (porcentaje, número de empresas, retorno de inversión en meses) que no esté verificada. Los indicadores cualitativos ("en baja", "en alza") están permitidos porque son caracterizaciones verdaderas — un número falso puesto en un gráfico no.
 2. **El cierre del informe siempre afirma que esto se resuelve — sin fabricar nunca un caso puntual falso.** El cierre nunca se omite: es la oportunidad de decirle al interesado justo lo que vino a escuchar (que su problema tiene solución y que fiable lo resuelve). Pero la línea que NO se cruza es inventar un caso específico verificable ("trabajamos con una mueblería de Rosario con tu mismo problema") que no existe — en un rubro chico donde los dueños se conocen, un caso falso mata la credibilidad, que es el único activo. La distinción clave: **afirmación general segura SÍ, caso específico inventado NO.** Escalera de tres niveles, de mejor a peor caso, para que siempre haya qué decir sin inventar:
    1. Si hay **caso real del mismo rubro** → se usa (lo más potente).
    2. Si no, **caso real análogo de otro rubro** ("un comercio con un problema parecido al tuyo…").
@@ -98,14 +138,40 @@ Cada pregunta cerrada alimenta el benchmark; la 8 alimenta el espejo. No agregar
 
 ## 12. Fuentes de datos (capa de contexto)
 
-- **CAME** — Índice de Ventas Minoristas Pyme. Mensual, gratuito, **desagregado por rubro** (alimentos y bebidas; bazar/decoración/textiles de hogar y muebles; calzado y marroquinería; farmacia y perfumería; ferretería/materiales eléctricos y de construcción; textiles e indumentaria). Fuente principal de arranque.
-- **INDEC** — indicadores de actividad, encuesta de supermercados, etc. (verificar cobertura y formato al integrar).
+La capa de contexto es **cualitativa por defecto** y no requiere un dato numérico por rubro para funcionar. Las fuentes abajo son para enriquecer esa caracterización con datos concretos cuando están disponibles — no son un prerrequisito.
+
+- **CAME** — Índice de Ventas Minoristas Pyme. Mensual, gratuito, desagregado por rubro (alimentos y bebidas; bazar/decoración/textiles de hogar y muebles; calzado y marroquinería; farmacia y perfumería; ferretería/materiales eléctricos y de construcción; textiles e indumentaria). Útil como apoyo numérico cuando está disponible. **Limitación: cubre solo 6 rubros** — el informe no puede depender de él para funcionar.
+- **INDEC** — indicadores de actividad, encuesta de supermercados, etc.
 - **CACE** — estudios de e-commerce por rubro (útil para el argumento digital).
 - **Cámaras y observatorios sectoriales** — según rubro.
 
-Estrategia de datos: arrancar con datos públicos genéricos por rubro. A medida que la base propia (encuestas acumuladas) crece, usar menos IA y más datos reales propios. Los datos propios son un activo que se vuelve más valioso con el tiempo.
+Cuando no hay dato específico cargado en `datos_sector`, el informe usa una caracterización honesta y general: contexto macro PyME argentino, qué está golpeado, qué resiste, el vector digital. Esto es verdad estable que aplica a prácticamente cualquier rubro del comercio minorista. No tiene fecha de vencimiento mensual ni depende de scrapers.
 
-## 13. Anti-objetivos (lo que NO hacer)
+Estrategia de datos: la base propia (`datos_sector_staging` → validación → producción) es el mecanismo para enriquecer con datos reales. A medida que crece, los informes ganan precisión. Pero la calidad base del informe no esperá a que la base esté completa.
+
+## 13. Sistema de email
+
+**Proveedor:** Resend (`lib/email.ts`). API key en variable de entorno `RESEND_API_KEY` (solo backend, nunca `NEXT_PUBLIC_`).
+
+**Mail inmediato (implementado):** se envía al completar la encuesta, justo después de que el informe se genera por primera vez. Contiene:
+- Asunto personalizado con el título del informe generado
+- Extracto del espejo (primer párrafo de `seccion_espejo`) — la parte más personal
+- Botón "Ver mi informe completo" → link a `/informe/[encuesta_id]`
+- Mención suave de fiable al final del cuerpo (a diferencia del texto del informe que es agnóstico, el mail sí puede mencionarlo)
+- Placeholder de baja marcado con comentario `UNSUBSCRIBE_LINK` para implementar cuando llegue la cadencia
+
+**Persistencia del estado:** `informes.email_enviado_at` — timestamp de cuándo se envió. Permite no reenviar y saber el estado para la cadencia futura.
+
+**Robustez — regla de oro:** el envío de mail NO rompe el flujo. Si Resend falla, el error se loguea en consola pero el contacto y el informe ya están guardados. El usuario ve su informe igual.
+
+**Mail de cadencia (pendiente):** la secuencia de seguimiento viene en una iteración futura. El campo `email_enviado_at` ya está listo como base.
+
+**Variables de entorno necesarias:**
+- `RESEND_API_KEY` — clave de API de Resend
+- `EMAIL_FROM` — dirección de envío verificada en Resend (ej: `diagnostico@farodenegocios.com.ar`). En desarrollo, usar `onboarding@resend.dev` (solo manda a emails verificados en Resend)
+- `SITE_URL` — URL base del sitio (ej: `https://farodenegocios.com.ar`). En desarrollo, se infiere del header `host` de la request
+
+## 14. Anti-objetivos (lo que NO hacer)
 
 - NO empezar por el portal lindo / los artículos. Empezar por el corazón.
 - NO construir una mini-versión gratis de lo que vende fiable (un mini-stock, mini-turnos). El anzuelo revela el problema, no regala la solución.

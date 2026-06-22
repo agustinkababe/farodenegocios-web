@@ -10,9 +10,10 @@ type Respuestas = {
   canal_pedidos: string;
   control_stock: string;
   tiempo_respuesta: string;
-  volumen_consultas: string;
   vende_online: string;
   tarea_repetitiva: string;
+  volumen_consultas: string;
+  horas_tarea: string;
   email: string;
 };
 
@@ -91,13 +92,6 @@ const PASOS: Paso[] = [
   },
   {
     tipo: "radio",
-    opcional: true,
-    pregunta: "Más o menos, ¿cuántas consultas de clientes manejás por día?",
-    campo: "volumen_consultas",
-    opciones: ["Menos de 10", "Entre 10 y 30", "Entre 30 y 50", "Más de 50"],
-  },
-  {
-    tipo: "radio",
     pregunta: "¿Vendés online?",
     campo: "vende_online",
     opciones: [
@@ -117,6 +111,21 @@ const PASOS: Paso[] = [
       "Por ejemplo: responder siempre las mismas preguntas por WhatsApp, hacer el control de caja a mano, cargar pedidos uno por uno...",
   },
   {
+    tipo: "radio",
+    opcional: true,
+    pregunta: "Más o menos, ¿cuántos clientes o consultas manejás por día?",
+    campo: "volumen_consultas",
+    opciones: ["Menos de 10", "Entre 10 y 30", "Entre 30 y 50", "Más de 50"],
+  },
+  {
+    tipo: "radio",
+    opcional: true,
+    pregunta:
+      "¿Cuántas horas por semana, más o menos, te consume esa tarea que más te pesa?",
+    campo: "horas_tarea",
+    opciones: ["Menos de 5 horas", "Entre 5 y 10 horas", "Entre 10 y 20 horas", "Más de 20 horas"],
+  },
+  {
     tipo: "email",
     pregunta: "¿A dónde te mandamos tu informe?",
     detalle: "Gratis, sin spam. Solo tu diagnóstico.",
@@ -132,9 +141,10 @@ const RESPUESTAS_INICIALES: Respuestas = {
   canal_pedidos: "",
   control_stock: "",
   tiempo_respuesta: "",
-  volumen_consultas: "",
   vende_online: "",
   tarea_repetitiva: "",
+  volumen_consultas: "",
+  horas_tarea: "",
   email: "",
 };
 

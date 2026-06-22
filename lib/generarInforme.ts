@@ -12,24 +12,36 @@ function buildPrompt(
   respuestas: RespuestasEncuesta,
   datos: DatosSectorRow | null
 ): string {
-  // La capa de contexto se construye SOLO con datos que vienen de la DB.
-  // En ningún caso se le pide a la IA que genere o complete cifras del sector.
+  // La capa de contexto es ahora cualitativa y funciona para cualquier rubro.
+  // Si hay dato cargado en la DB lo usa como apoyo; si no, caracteriza con honestidad general.
+  // En ningún caso se le pide a la IA que invente cifras exactas.
   const bloqueContexto = datos
-    ? `=== DATOS REALES DEL SECTOR (fuente: CAME) ===
-Estos son los ÚNICOS datos de sector que podés citar. No podés agregar, inferir ni inventar cifras adicionales. Si algo no está acá, no existe para este informe.
+    ? `=== CONTEXTO DEL SECTOR (fuente: ${datos.fuente}) ===
+Estos son los únicos datos de sector que podés citar. No podés agregar, inferir ni inventar cifras adicionales.
 
 Rubro: ${datos.rubro_display}
-Variación interanual: ${datos.variacion_interanual !== null ? datos.variacion_interanual + "%" : "no disponible"}
-Variación acumulada en el año: ${datos.variacion_acumulada !== null ? datos.variacion_acumulada + "%" : "no disponible"}
-Período de referencia: ${datos.periodo}
-${datos.notas ? "Contexto cualitativo: " + datos.notas : ""}`
-    : `=== DATOS DEL SECTOR ===
-No contamos aún con datos específicos para este rubro en nuestra base.
-En la sección del sector, aclaralo honestamente y sin vueltas. Podés mencionar que el comercio minorista PyME en Argentina atraviesa un año difícil, pero sin inventar cifras ni porcentajes concretos que no tengas.`;
+${datos.nota_cualitativa ? "Caracterización: " + datos.nota_cualitativa : ""}
+${datos.variacion_interanual !== null ? "Variación interanual registrada: " + datos.variacion_interanual + "% (período: " + datos.mes_referencia + ")" : ""}
+${datos.variacion_acumulada_anio !== null ? "Variación acumulada en el año: " + datos.variacion_acumulada_anio + "%" : ""}`
+    : `=== CONTEXTO DEL SECTOR ===
+No contamos con datos específicos de este rubro en nuestra base.
+Para la sección del sector, hacé una caracterización honesta y general del comercio PyME argentino:
+contexto de caída del consumo, inflación, la digitalización como uno de los pocos vectores de crecimiento.
+Podés mencionar tendencias generales del rubro del usuario (alimentos, indumentaria, servicios, etc.)
+basándote en lo que es verdad estable y conocida. Pero NUNCA inventés un porcentaje exacto ni lo presentés
+como dato concreto. Podés decir "viene golpeado", "de los más afectados", "tuvo un 2024 difícil",
+o "lo digital es de lo poco que crece" — eso es verdad general y no requiere fuente específica.`;
 
-  const bloqueVolumen = respuestas.volumen_consultas
-    ? `Volumen de consultas por día: ${respuestas.volumen_consultas}`
-    : `Volumen de consultas por día: el usuario no lo indicó (dato no disponible)`;
+  // Bloque de impacto cuantitativo: combina volumen + horas si el usuario los proporcionó.
+  // Solo se usa si el dolor expresado en tarea_repetitiva está relacionado con estos números.
+  const tieneVolumen = !!respuestas.volumen_consultas;
+  const tieneHoras = !!respuestas.horas_tarea;
+  const bloqueImpacto =
+    tieneVolumen || tieneHoras
+      ? `Datos de impacto del dolor (rangos aproximados dados por el usuario):
+${tieneVolumen ? "Volumen de consultas/clientes por día: " + respuestas.volumen_consultas : ""}
+${tieneHoras ? "Horas semanales que consume la tarea que más le pesa: " + respuestas.horas_tarea : ""}`
+      : `Datos de impacto del dolor: el usuario no proporcionó volumen ni horas — no disponible, no inventar.`;
 
   return `Sos un consultor que conoce de cerca el mundo de las PyMEs argentinas. Escribís diagnósticos honestos para dueños de negocios que no tienen tiempo ni plata para perder.
 
@@ -42,9 +54,10 @@ Antigüedad: ${respuestas.antiguedad}
 Canal principal de pedidos o consultas: ${respuestas.canal_pedidos}
 Control de stock: ${respuestas.control_stock}
 Tiempo de respuesta a consultas: ${respuestas.tiempo_respuesta}
-${bloqueVolumen}
 Vende online: ${respuestas.vende_online}
 Lo que más le pesa, en sus propias palabras: "${respuestas.tarea_repetitiva}"
+
+${bloqueImpacto}
 
 === TAREA ===
 Escribí un diagnóstico en JSON con exactamente estos cuatro campos. Cada campo contiene SOLO el texto del cuerpo — sin títulos, sin subtítulos, sin negritas, sin asteriscos, sin encabezados de ningún tipo. Los títulos los pone el front-end, no vos.
@@ -64,9 +77,10 @@ Una frase corta y específica para este negocio. Sin "Tu diagnóstico:" al princ
 ---
 
 CAMPO "seccion_sector":
-Contextualizá el rubro con los datos del bloque de arriba.
-- Si hay datos reales, usá la variación interanual, el período y las notas cualitativas. Esos son los únicos números que podés citar.
-- Si no hay datos específicos, decilo con honestidad y hablá de tendencias generales sin inventar cifras.
+Describí el momento del sector del usuario con honestidad.
+- Si hay datos de sector en el bloque de arriba, usá la caracterización y los números (si existen). Esos son los únicos datos que podés citar con precisión.
+- Si no hay datos específicos, hacé una caracterización honesta y general del comercio PyME argentino en el rubro del usuario: contexto macro, qué está golpeado, qué resiste. Podés afirmar verdades generales sin inventar cifras.
+- NUNCA inventes un porcentaje exacto ni lo presentés como dato preciso si no lo tenés respaldado.
 - Sin encabezados adentro. Solo párrafos de texto.
 - 2 a 3 párrafos cortos, separados por salto de línea doble.
 
@@ -79,13 +93,15 @@ PASO 1 — Escuchá primero:
 Tomá exactamente lo que escribió en "Lo que más le pesa" y reflejalo. Nombralo como él lo dijo. Si dijo "mis ventas están muy bajas, antes había consultas pero hoy nadie compra", eso es lo que estás leyendo — no lo reinterpretés como "problema de stock" ni "gestión de consultas". El dolor que expresó manda.
 
 PASO 2 — Contextualizá:
-Conectá ese dolor con el contexto del sector y con las otras respuestas solo si tiene sentido real. Si el dolor es de demanda y los datos del sector confirman que el rubro está golpeado, decilo. Si el dolor es operativo, conectalo con lo operativo. No fuerces la conexión si no existe.
+Conectá ese dolor con el contexto del sector y con las otras respuestas solo si tiene sentido real. Si el dolor es de demanda y el sector confirma que está golpeado, decilo. Si el dolor es operativo, conectalo con lo operativo. No fuerces la conexión si no existe.
 
-PASO 3 — Usá el volumen si corresponde:
-Si el dolor expresado tiene que ver con consultas, atención o tiempo de respuesta, Y el dato de volumen está disponible, podés usarlo para dar dimensión concreta. Ejemplo de razonamiento permitido: "si manejás entre 30 y 50 consultas por día y respondés tarde, son varias ventas por semana que se enfrían". SIEMPRE presentalo como estimación aproximada ("pueden ser", "eso equivale a más o menos"), NUNCA como cifra exacta. Si el dato de volumen no está disponible, o si el dolor NO tiene que ver con consultas, no lo uses.
+PASO 3 — Cuantificá el dolor si tenés los datos:
+Si el usuario indicó volumen de consultas Y/O horas dedicadas a la tarea, usá esos rangos para dar dimensión concreta al dolor. Hacélo solo si el dolor expresado tiene relación directa con esos números (si habló de responder consultas, de una tarea que le consume tiempo, etc.).
+Ejemplo de razonamiento permitido: "si manejás entre 30 y 50 consultas por día y esto te come entre 10 y 20 horas semanales, son casi dos días de trabajo por semana en algo que no genera una venta extra".
+SIEMPRE presentalo como estimación aproximada con palabras como "unas", "entre", "más o menos", "pueden ser". NUNCA como cifra exacta. Si no tenés esos datos, o si el dolor no está relacionado, omitílo.
 
 PASO 4 — Sin cifras inventadas:
-Si no tenés un dato cuantitativo real del usuario, no lo inventes. Quedate en lo cualitativo. Nunca fabules plata ni horas aunque "suenen bien".
+Si no tenés un dato cuantitativo real del usuario, quedate en lo cualitativo. Nunca fabules plata ni horas aunque "suenen bien".
 
 - Sin encabezados adentro. Solo párrafos de texto.
 - 2 a 3 párrafos cortos, separados por salto de línea doble.
@@ -93,27 +109,33 @@ Si no tenés un dato cuantitativo real del usuario, no lo inventes. Quedate en l
 ---
 
 CAMPO "seccion_cierre":
-Arrancá del dolor específico que expresó el usuario — no de lo que podría ofrecer fiable.
+Este campo planta el DESEO de la categoría: que el dueño quiera resolver su dolor con tecnología.
+NO menciona ninguna empresa, NO tiene CTA, NO nombra proveedores. Es contenido puro.
 
-Si el dolor es operativo (algo que proceso o tecnología puede resolver): conectalo directamente con cómo fiable trabaja ese tipo de problema en PyMEs y terminá firme.
+PASO 1 — Conectá el dolor con la palanca que el dueño tiene:
+En tiempos de ajuste, lo que queda bajo el control del dueño no es la macro ni la demanda — es cómo opera. Aprovechá mejor cada consulta que llega. Dejá de gastar tiempo en lo que no vende.
+Si el dolor es de mercado (caída de ventas, falta de demanda): reconocelo primero, sin mentirle. Pero no te quedes ahí: hacé el puente hacia lo que sí puede cambiar.
 
-Si el dolor es de mercado (caída de ventas, falta de demanda): reconocé que no todo se resuelve con tecnología — eso es honesto y el usuario lo va a valorar — pero no te quedes ahí. Hacé el puente: en momentos de ajuste, lo que queda bajo el control del dueño es operar más eficiente para aprovechar mejor cada consulta que llega y reducir lo que se pierde por fricción. Terminá firme en que fiable puede ayudar con esa parte.
+PASO 2 — Hacé visible la solución:
+Describí en lenguaje concreto y simple qué resolvería el dolor puntual que expresó. Que el dueño pueda VISUALIZAR cómo cambiaría su día a día. Sin nombrar empresas ni productos. Solo describir QUÉ haría la solución:
+- Si el dolor es responder siempre lo mismo por WhatsApp → "algo que conteste solo las preguntas repetidas de precios y horarios, para que dejes de escribir lo mismo todo el día"
+- Si el dolor es el control de stock → "un sistema donde cargás una venta y el stock se actualiza solo, sin planillas"
+- Si el dolor es cargar pedidos → "un flujo donde el pedido llega directo al sistema, sin recargar nada a mano"
 
-REGLA DEL CIERRE: El tono debe ser honesto pero confiado. Nunca terminar con dudas ("quizás", "no sé si", "depende"). Si hay algo que fiable no resuelve, decilo en el medio — pero el párrafo final siempre termina afirmando lo que sí se puede hacer. Honestidad sí, tibieza no.
+PASO 3 — Planta la idea de accesibilidad:
+Cerrá con la idea de que este tipo de solución — tecnología hecha para resolver un proceso específico de un negocio — antes era cara y exclusiva de las empresas grandes. Eso cambió: hoy se puede construir algo así a una fracción del costo anterior, y un negocio como el del usuario tiene acceso a eso. Confiado, sin exagerar, sin inventar cifras.
 
-fiable = estudio que desarrolla soluciones tecnológicas a medida para PyMEs argentinas. Mencionalo de forma coherente con el dolor expresado, nunca como si fuera una solución genérica.
-
-Sin casos puntuales inventados. Solo afirmaciones generales verdaderas y confiadas.
+REGLA ABSOLUTA: NO mencionar "fiable" ni ninguna empresa. NO inventar casos ni cifras. Solo afirmaciones verdaderas.
 
 - Sin encabezados adentro. Solo párrafos de texto.
-- 1 a 2 párrafos cortos.
+- 2 párrafos cortos.
 
 ---
 
 TONO para todos los campos:
 Hablale como a un conocido que tiene un comercio. Directo, sin vueltas. "Mirá, la realidad es...", "lo que te está pesando...", "en este contexto...". Tuteá siempre. Sin "implementar estrategias", sin "optimizar procesos", sin "emprendimiento", sin "ecosistema". El informe acompaña — no vende, no alecciona.
 
-REGLA ABSOLUTA: Cero cifras inventadas. Si no tenés el dato real, no lo ponés. Si estimás algo, lo aclarás explícitamente con palabras como "pueden ser" o "más o menos". Nunca presentés una inferencia como un dato cierto.`;
+REGLA ABSOLUTA: Cero cifras inventadas. Si no tenés el dato real, no lo ponés. Si estimás algo del usuario, lo aclarás con "unas", "entre", "más o menos". Nunca presentés una inferencia como un dato cierto.`;
 }
 
 export async function generarInforme(

@@ -24,3 +24,40 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+@media print {
+  /* Márgenes cómodos para el PDF */
+  @page {
+    margin: 2cm 2.2cm;
+  }
+
+  body {
+    background: white;
+    color: #1e293b;
+    font-size: 11pt;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Evitar cortes en medio de secciones */
+  section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  /* Los cards de contenido se ven bien en blanco y negro si el usuario no imprime fondos */
+  .bg-white {
+    border: 1px solid #e2e8f0 !important;
+  }
+
+  /* La sección ámbar mantiene el tinte claro si se imprimen fondos */
+  .bg-amber-50 {
+    background-color: #fffbeb !important;
+    border: 1px solid #fde68a !important;
+  }
+
+  /* Los indicadores mantienen sus fondos tenues */
+  .bg-red-50    { background-color: #fef2f2 !important; }
+  .bg-emerald-50 { background-color: #f0fdf4 !important; }
+  .bg-indigo-50 { background-color: #eef2ff !important; }
+}

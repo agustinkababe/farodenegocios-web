@@ -41,10 +41,14 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Email inválido" }, { status: 400 });
   }
 
-  // volumen_consultas es opcional: solo se persiste si el usuario respondió
+  // volumen_consultas y horas_tarea son opcionales: solo se persisten si el usuario respondió
   const volumenConsultas =
     typeof data.volumen_consultas === "string"
       ? (data.volumen_consultas as string).trim()
+      : "";
+  const horasTarea =
+    typeof data.horas_tarea === "string"
+      ? (data.horas_tarea as string).trim()
       : "";
 
   const { data: fila, error } = await supabase
@@ -56,9 +60,10 @@ export async function POST(request: Request) {
       canal_pedidos: (data.canal_pedidos as string).trim(),
       control_stock: (data.control_stock as string).trim(),
       tiempo_respuesta: (data.tiempo_respuesta as string).trim(),
-      ...(volumenConsultas ? { volumen_consultas: volumenConsultas } : {}),
       vende_online: (data.vende_online as string).trim(),
       tarea_repetitiva: (data.tarea_repetitiva as string).trim(),
+      ...(volumenConsultas ? { volumen_consultas: volumenConsultas } : {}),
+      ...(horasTarea ? { horas_tarea: horasTarea } : {}),
       email,
     })
     .select("id")

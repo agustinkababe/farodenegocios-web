@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase-server";
 import { generarInforme } from "@/lib/generarInforme";
+import { enviarMailInforme } from "@/lib/email";
 import type { EncuestaRow, DatosSectorRow } from "@/types";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
@@ -92,9 +93,37 @@ export async function GET(
     .maybeSingle();
 
   if (errorGuardado) {
-    // Si falla el guardado, igual devolvemos el contenido generado al usuario
+    // Si falla el guardado, igual devolvemos el contenido generado al usuario.
+    // El contacto ya quedó en encuestas — no se pierde el lead.
     console.error("Error guardando informe:", errorGuardado);
     return NextResponse.json({ ok: true, informe: contenido });
+  }
+
+  // Enviamos el mail transaccional con el resumen del informe.
+  // Si falla, logueamos pero NO rompemos el flujo — el lead ya está guardado.
+  if (informeGuardado) {
+    const host = request.headers.get("host") ?? "localhost:3000";
+    const protocol = host.startsWith("localhost") ? "http" : "https";
+    const siteUrl = process.env.SITE_URL ?? `${protocol}://${host}`;
+    const informeUrl = `${siteUrl}/informe/${id}`;
+
+    try {
+      await enviarMailInforme({
+        email: encuesta.email,
+        rubro: datosSector?.rubro_display ?? encuesta.rubro,
+        titulo: contenido.titulo,
+        seccion_espejo: contenido.seccion_espejo,
+        informeUrl,
+      });
+
+      // Registramos que el mail fue enviado para no reenviar y tener estado para la cadencia futura
+      await supabase
+        .from("informes")
+        .update({ email_enviado_at: new Date().toISOString() })
+        .eq("id", informeGuardado.id);
+    } catch (errMail) {
+      console.error("Error enviando mail de informe (lead conservado):", errMail);
+    }
   }
 
   return NextResponse.json({ ok: true, informe: informeGuardado });
