@@ -24,9 +24,9 @@ type PasoBase = {
   opcional?: boolean;
 };
 
-type PasoRadio = PasoBase & { tipo: "radio"; opciones: string[] };
+type PasoRadio    = PasoBase & { tipo: "radio";    opciones: string[] };
 type PasoTextarea = PasoBase & { tipo: "textarea"; placeholder: string };
-type PasoEmail = PasoBase & { tipo: "email"; placeholder: string };
+type PasoEmail    = PasoBase & { tipo: "email";    placeholder: string };
 type Paso = PasoRadio | PasoTextarea | PasoEmail;
 
 const PASOS: Paso[] = [
@@ -123,7 +123,12 @@ const PASOS: Paso[] = [
     pregunta:
       "¿Cuántas horas por semana, más o menos, te consume esa tarea que más te pesa?",
     campo: "horas_tarea",
-    opciones: ["Menos de 5 horas", "Entre 5 y 10 horas", "Entre 10 y 20 horas", "Más de 20 horas"],
+    opciones: [
+      "Menos de 5 horas",
+      "Entre 5 y 10 horas",
+      "Entre 10 y 20 horas",
+      "Más de 20 horas",
+    ],
   },
   {
     tipo: "email",
@@ -155,10 +160,10 @@ export default function EncuestaPage() {
   const [enviando, setEnviando] = useState(false);
   const router = useRouter();
 
-  const pasoActual = PASOS[paso];
-  const totalPasos = PASOS.length;
+  const pasoActual  = PASOS[paso];
+  const totalPasos  = PASOS.length;
   const valorActual = respuestas[pasoActual.campo];
-  const porcentaje = Math.round((paso / totalPasos) * 100);
+  const porcentaje  = Math.round((paso / totalPasos) * 100);
 
   const setValor = (val: string) => {
     setRespuestas((prev) => ({ ...prev, [pasoActual.campo]: val }));
@@ -209,7 +214,11 @@ export default function EncuestaPage() {
         body: JSON.stringify(respuestas),
       });
 
-      const data = await res.json().catch(() => ({})) as { ok?: boolean; id?: string; error?: string };
+      const data = await res.json().catch(() => ({})) as {
+        ok?: boolean;
+        id?: string;
+        error?: string;
+      };
 
       if (!res.ok || !data.id) {
         throw new Error(data.error ?? "Error desconocido");
@@ -223,35 +232,36 @@ export default function EncuestaPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* Header con barra de progreso */}
-      <header className="bg-white border-b border-slate-200 px-4 py-3">
+    <div className="min-h-screen bg-bg flex flex-col font-sans">
+
+      {/* ── Header con barra de progreso ── */}
+      <header className="bg-surface border-b border-line px-4 py-3">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-2.5">
-            <span className="text-sm font-semibold text-slate-700">
+            <span className="font-display text-[15px] font-semibold text-ink">
               Faro de Negocios
             </span>
-            <span className="text-xs text-slate-400">
+            <span className="text-xs text-muted">
               {paso + 1} de {totalPasos}
             </span>
           </div>
-          <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
+          <div className="h-1 bg-line rounded-full overflow-hidden">
             <div
-              className="h-full bg-amber-400 rounded-full transition-all duration-300"
+              className="h-full bg-accent rounded-full transition-all duration-300"
               style={{ width: `${porcentaje}%` }}
             />
           </div>
         </div>
       </header>
 
-      {/* Banner intro — solo en el primer paso */}
+      {/* ── Banner intro — solo en el primer paso ── */}
       {paso === 0 && (
-        <div className="bg-indigo-700 text-white px-4 py-7">
+        <div className="bg-ink text-white px-4 py-7">
           <div className="max-w-lg mx-auto">
-            <h1 className="text-2xl font-bold leading-snug">
+            <h1 className="font-display text-2xl font-semibold leading-snug">
               ¿Cómo está tu negocio frente a los de tu rubro?
             </h1>
-            <p className="mt-2 text-indigo-200 text-sm leading-relaxed">
+            <p className="mt-2 text-white/60 text-sm leading-relaxed font-sans">
               Respondé unas preguntas cortas y te mandamos un diagnóstico
               gratuito con datos reales de tu sector. Menos de 3 minutos.
             </p>
@@ -259,15 +269,17 @@ export default function EncuestaPage() {
         </div>
       )}
 
-      {/* Contenido de cada paso */}
+      {/* ── Contenido del paso ── */}
       <main className="flex-1 px-4 py-8">
         <div className="max-w-lg mx-auto">
+
+          {/* Pregunta */}
           <div className="mb-6">
-            <h2 className="text-xl font-semibold text-slate-900 leading-snug">
+            <h2 className="font-display text-xl font-semibold text-ink leading-snug">
               {pasoActual.pregunta}
             </h2>
             {pasoActual.detalle && (
-              <p className="mt-2 text-sm text-slate-500 leading-relaxed">
+              <p className="mt-2 text-sm text-muted leading-relaxed">
                 {pasoActual.detalle}
               </p>
             )}
@@ -283,11 +295,12 @@ export default function EncuestaPage() {
                     <button
                       key={opcion}
                       onClick={() => seleccionarYAvanzar(opcion)}
-                      className={`w-full text-left px-4 py-3.5 rounded-xl border text-sm font-medium transition-all duration-150 ${
+                      className={[
+                        "w-full text-left px-4 py-3.5 rounded-[6px] border text-sm transition-all duration-150",
                         seleccionado
-                          ? "border-indigo-600 bg-indigo-50 text-indigo-800"
-                          : "border-slate-200 bg-white text-slate-700 hover:border-indigo-300 hover:bg-slate-50"
-                      }`}
+                          ? "border-ink bg-ink/5 text-ink font-semibold"
+                          : "border-line bg-surface text-warm hover:border-navy-500 hover:bg-surface",
+                      ].join(" ")}
                     >
                       {opcion}
                     </button>
@@ -295,12 +308,11 @@ export default function EncuestaPage() {
                 })}
               </div>
 
-              {/* Navegación para pasos de radio */}
               <div className="mt-5 flex items-center gap-4">
                 {paso > 0 && (
                   <button
                     onClick={retroceder}
-                    className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+                    className="text-sm text-muted hover:text-warm transition-colors"
                   >
                     Atrás
                   </button>
@@ -308,7 +320,7 @@ export default function EncuestaPage() {
                 {pasoActual.opcional && (
                   <button
                     onClick={saltear}
-                    className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+                    className="text-sm text-muted hover:text-warm transition-colors"
                   >
                     Salteá esta pregunta
                   </button>
@@ -324,7 +336,7 @@ export default function EncuestaPage() {
               value={valorActual}
               onChange={(e) => setValor(e.target.value)}
               placeholder={pasoActual.placeholder}
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-800 placeholder-slate-400 resize-none focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full rounded-[6px] border border-line bg-surface px-4 py-3 text-sm text-warm placeholder-muted resize-none focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink/60 transition-colors"
             />
           )}
 
@@ -336,20 +348,22 @@ export default function EncuestaPage() {
               onChange={(e) => setValor(e.target.value)}
               onKeyDown={(e) => e.key === "Enter" && avanzar()}
               placeholder={pasoActual.placeholder}
-              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-3.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+              className="w-full rounded-[6px] border border-line bg-surface px-4 py-3.5 text-sm text-warm placeholder-muted focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink/60 transition-colors"
             />
           )}
 
-          {/* Mensaje de error */}
-          {error && <p className="mt-3 text-sm text-red-500">{error}</p>}
+          {/* Error */}
+          {error && (
+            <p className="mt-3 text-sm text-red-600">{error}</p>
+          )}
 
-          {/* Botones de navegación para textarea y email */}
+          {/* Botones para textarea y email */}
           {(pasoActual.tipo === "textarea" || pasoActual.tipo === "email") && (
             <div className="mt-5 flex items-center gap-3">
               {paso > 0 && (
                 <button
                   onClick={retroceder}
-                  className="px-4 py-2.5 text-sm text-slate-400 hover:text-slate-600 transition-colors"
+                  className="px-4 py-2.5 text-sm text-muted hover:text-warm transition-colors"
                 >
                   Atrás
                 </button>
@@ -357,7 +371,7 @@ export default function EncuestaPage() {
               <button
                 onClick={avanzar}
                 disabled={enviando}
-                className="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400 text-white font-medium rounded-xl py-3 text-sm transition-colors"
+                className="flex-1 bg-accent hover:bg-accent-600 disabled:opacity-60 text-ink font-semibold rounded-[6px] py-3 text-sm transition-colors"
               >
                 {enviando
                   ? "Enviando..."
@@ -367,6 +381,7 @@ export default function EncuestaPage() {
               </button>
             </div>
           )}
+
         </div>
       </main>
     </div>

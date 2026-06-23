@@ -1,32 +1,44 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ── Tokens de marca Faro de Negocios ───────────────────────────────────────
+   Fuente de verdad: guía de marca.
+   Regla de oro: marino = estructura · ámbar = lo que invita a actuar.
+   ────────────────────────────────────────────────────────────────────────── */
+@theme {
+  /* Colores */
+  --color-ink:          #0C2236;   /* marino profundo · primario, headers */
+  --color-navy-700:     #18405F;
+  --color-navy-500:     #356089;
+  --color-accent:       #E0A33E;   /* ámbar · CTAs, destacados */
+  --color-accent-600:   #C7872A;
+  --color-bg:           #FAF7F0;   /* crema · fondo general */
+  --color-surface:      #FFFDF8;   /* tarjetas, superficie elevada */
+  --color-line:         #E4DECF;   /* bordes */
+  --color-warm:         #423E36;   /* texto cálido principal */
+  --color-muted:        #7A746A;   /* texto secundario */
+
+  /* Radios */
+  --radius-sm:          4px;
+  --radius-md:          6px;
+  --radius-lg:          16px;
 }
 
+/* Fuentes: variables runtime desde next/font (requieren @theme inline) */
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-newsreader);
+  --font-sans:    var(--font-libre-franklin);
+  --font-mono:    var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
+/* ── Base ───────────────────────────────────────────────────────────────── */
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--color-bg);
+  color: var(--color-warm);
+  font-family: var(--font-libre-franklin), system-ui, sans-serif;
 }
 
+/* ── Print (informe PDF) ────────────────────────────────────────────────── */
 @media print {
-  /* Márgenes cómodos para el PDF */
   @page {
     margin: 2cm 2.2cm;
   }
@@ -39,25 +51,18 @@ body {
     print-color-adjust: exact;
   }
 
-  /* Evitar cortes en medio de secciones */
   section {
     break-inside: avoid;
     page-break-inside: avoid;
   }
 
-  /* Los cards de contenido se ven bien en blanco y negro si el usuario no imprime fondos */
-  .bg-white {
-    border: 1px solid #e2e8f0 !important;
+  /* Cards del informe */
+  .bg-surface {
+    background-color: #FFFDF8 !important;
+    border: 1px solid #E4DECF !important;
   }
 
-  /* La sección ámbar mantiene el tinte claro si se imprimen fondos */
-  .bg-amber-50 {
-    background-color: #fffbeb !important;
-    border: 1px solid #fde68a !important;
-  }
-
-  /* Los indicadores mantienen sus fondos tenues */
-  .bg-red-50    { background-color: #fef2f2 !important; }
+  /* Indicadores cualitativos */
+  .bg-red-50     { background-color: #fef2f2 !important; }
   .bg-emerald-50 { background-color: #f0fdf4 !important; }
-  .bg-indigo-50 { background-color: #eef2ff !important; }
 }
