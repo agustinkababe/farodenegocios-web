@@ -1,3 +1,4 @@
+// ── PIPELINE PAUSADO — ver comentario en app/api/admin/staging/route.ts ──────
 import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase-server";
 

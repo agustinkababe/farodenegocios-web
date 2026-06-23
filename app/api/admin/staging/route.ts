@@ -1,3 +1,15 @@
+// ── PIPELINE PAUSADO ──────────────────────────────────────────────────────────
+// Este endpoint forma parte del pipeline de datos de sector (staging → validación
+// manual → producción). El enfoque original preveía cargar datos numéricos por
+// rubro (CAME, INDEC) y validarlos antes de publicarlos en datos_sector.
+//
+// El pipeline está PAUSADO: el informe hoy usa contexto cualitativo generado
+// por IA, sin depender de datos numéricos por rubro. El código se conserva
+// por si se retoma la carga de datos numéricos en el futuro.
+//
+// Retomar implica: (1) implementar ingesta de datos (scraper/API/manual),
+// (2) reemplazar auth x-admin-secret por un sistema real.
+// ─────────────────────────────────────────────────────────────────────────────
 import { NextResponse } from "next/server";
 import { createServerClient } from "@/lib/supabase-server";
 

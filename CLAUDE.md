@@ -242,5 +242,38 @@ El proyecto usa DOS motores de IA distintos, con trabajos y exigencias diferente
 
 - Modelo de negocio: **validado conceptualmente** de punta a punta.
 - Informe de muestra: **probado** con datos reales de CAME (rubro decoración/textiles de hogar) sobre una PyME ficticia. Resultado: el modelo entrega.
-- Próximo hito: construir el corazón (flujo encuesta → informe → contacto) y validarlo con UNA PyME real.
+- Corazón funcional: flujo encuesta → informe → mail inmediato → cadencia de seguimiento → baja, todo operativo.
+- Próximo hito: validar con UNA PyME real.
 - Nombre/dominio del portal: **Faro de Negocios** — farodenegocios.com.ar (dominio disponible en nic.ar al momento de definirlo). Handle de Instagram @farodenegocios también disponible. Universo de marca asociado: luz, guía, navegar, rumbo en la tormenta (conecta con la coyuntura de crisis PyME sin envejecer con ella).
+
+## 16. Características pausadas o pendientes de construir
+
+Este registro existe para que nadie borre código "sin uso" sin entender el contexto, y para que el próximo sprint arranque con mapa claro.
+
+### Pipeline de datos de sector (PAUSADO — conservar el código)
+
+**Qué es:** Sistema staging → validación manual → producción para cargar datos numéricos de sector por rubro (variaciones CAME, notas cualitativas, fuente). Incluye:
+- `app/api/admin/staging/` — endpoints de listado, aprobación y rechazo
+- `app/admin/datos/` — UI de validación
+- Tabla `datos_sector_staging` (DB)
+- Tipo `DatosSectorStagingRow` en `types/index.ts`
+
+**Por qué está pausado:** El enfoque de datos de sector cambió. El informe hoy usa contexto cualitativo generado por IA, sin depender de datos numéricos por rubro. La tabla `datos_sector` (producción) sigue viva — si tiene registros para un rubro, el informe los usa como apoyo; si no tiene, genera contexto igualmente.
+
+**Para retomar:** Implementar ingesta de datos (scraper CAME, carga manual via CSV, etc.) y reemplazar la auth `x-admin-secret` por algo real antes de producción.
+
+**NO borrar este código** — es infraestructura lista que solo necesita datos.
+
+### Sección de artículos (PENDIENTE — no empezar hasta que el corazón esté validado)
+
+**Qué es:** Pilar de SEO/tráfico del portal. Artículos genéricos sobre temas del mundo PyME argentino, generados con IA. La página placeholder `app/articulos/page.tsx` está reservada.
+
+**Estado:** No comenzado. Ver regla de orden de construcción (sección 10): los artículos son "el cuerpo", que no se construye antes de que el corazón esté validado con PyMEs reales.
+
+### Columnas de telemetría sin dashboard aún
+
+Las siguientes columnas de DB se escriben pero aún no se consumen en ningún dashboard o lógica de negocio:
+- `encuestas.clickeo_at` — registra el primer clic en el link del informe (`/r/[id]`). Útil para analytics de apertura, pero hoy no frena ninguna lógica de cadencia (eso lo hace `clic_fiable_at`).
+- `informes.email_enviado_at` — registra cuándo se envió el mail inmediato. La cadencia usa `encuestas.enviado_informe_at` como referencia; esta columna es redundante pero tiene valor archivístico.
+
+**No borrar estas columnas** — los datos acumulados van a alimentar analytics cuando se construya el dashboard.

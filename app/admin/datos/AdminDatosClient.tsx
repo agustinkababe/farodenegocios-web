@@ -1,3 +1,4 @@
+// ── PIPELINE PAUSADO — ver comentario en app/api/admin/staging/route.ts ──────
 "use client";
 
 import { useEffect, useState, useCallback } from "react";

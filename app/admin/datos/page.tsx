@@ -1,3 +1,4 @@
+// ── PIPELINE PAUSADO — ver comentario en app/api/admin/staging/route.ts ──────
 import { notFound } from "next/navigation";
 import AdminDatosClient from "./AdminDatosClient";
 
