@@ -15,6 +15,13 @@ export type RespuestasEncuesta = {
 export type EncuestaRow = RespuestasEncuesta & {
   id: string;
   created_at: string;
+  unsubscribe_token: string | null;
+  unsubscribed_at: string | null;
+  clickeo_at: string | null;       // clic al informe (analytics, no frena cadencia)
+  clic_fiable_at: string | null;   // clic al link de fiable (SÍ frena la cadencia)
+  enviado_informe_at: string | null;
+  enviado_seguimiento1_at: string | null;
+  enviado_seguimiento2_at: string | null;
 };
 
 export type DatosSectorRow = {

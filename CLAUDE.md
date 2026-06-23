@@ -153,23 +153,64 @@ Estrategia de datos: la base propia (`datos_sector_staging` → validación → 
 
 **Proveedor:** Resend (`lib/email.ts`). API key en variable de entorno `RESEND_API_KEY` (solo backend, nunca `NEXT_PUBLIC_`).
 
-**Mail inmediato (implementado):** se envía al completar la encuesta, justo después de que el informe se genera por primera vez. Contiene:
-- Asunto personalizado con el título del informe generado
-- Extracto del espejo (primer párrafo de `seccion_espejo`) — la parte más personal
-- Botón "Ver mi informe completo" → link a `/informe/[encuesta_id]`
-- Mención suave de fiable al final del cuerpo (a diferencia del texto del informe que es agnóstico, el mail sí puede mencionarlo)
-- Placeholder de baja marcado con comentario `UNSUBSCRIBE_LINK` para implementar cuando llegue la cadencia
+### Cadencia de mails
 
-**Persistencia del estado:** `informes.email_enviado_at` — timestamp de cuándo se envió. Permite no reenviar y saber el estado para la cadencia futura.
+| # | Cuándo | Asunto | Propósito |
+|---|---|---|---|
+| 1 | Inmediato (al generar el informe) | `Tu diagnóstico ya está — [título]` | Entrega el informe + primer CTA a fiable |
+| 2 | ~3 días después | `Re: [título]` | Retoma el dolor, aporta ángulo del costo oculto, link al informe |
+| 3 | ~7 días después | `Para cuando tengas un momento — [título]` | Cierre suave, sin presión, puerta abierta |
 
-**Robustez — regla de oro:** el envío de mail NO rompe el flujo. Si Resend falla, el error se loguea en consola pero el contacto y el informe ya están guardados. El usuario ve su informe igual.
+**Reglas de frenado por mail:**
+- **Mail inmediato**: siempre se envía (no tiene freno de cadencia).
+- **Seguimiento 1**: se envía salvo `unsubscribed_at IS NOT NULL`. El clic al informe (`clickeo_at`) NO frena — es solo analytics.
+- **Seguimiento 2**: se envía salvo `unsubscribed_at IS NOT NULL` O `clic_fiable_at IS NOT NULL`. Si la persona ya clickeó el link a fiable (señal de interés alto), no tiene sentido seguir empujando.
 
-**Mail de cadencia (pendiente):** la secuencia de seguimiento viene en una iteración futura. El campo `email_enviado_at` ya está listo como base.
+**TODO:** frenar la cadencia también si el contacto ya contrató con fiable (cuando los sistemas se integren — hoy están separados).
 
-**Variables de entorno necesarias:**
-- `RESEND_API_KEY` — clave de API de Resend
-- `EMAIL_FROM` — dirección de envío verificada en Resend (ej: `diagnostico@farodenegocios.com.ar`). En desarrollo, usar `onboarding@resend.dev` (solo manda a emails verificados en Resend)
-- `SITE_URL` — URL base del sitio (ej: `https://farodenegocios.com.ar`). En desarrollo, se infiere del header `host` de la request
+### Tracking de clics (dos rutas)
+
+| Ruta | Registra | Redirige a | Frena cadencia |
+|---|---|---|---|
+| `/r/[id]` | `clickeo_at` (analytics) | `/informe/[id]` | No |
+| `/f/[id]` | `clic_fiable_at` (señal de interés) | `fiable.com.ar` | Sí (para seg2) |
+
+El mail inmediato usa `/r/[id]` para el CTA del informe. Los mails de seguimiento usan `/f/[id]` para el CTA principal (fiable) y `/r/[id]` como link secundario al informe.
+
+### Unsubscribe
+
+Cada encuesta tiene `unsubscribe_token` (UUID no adivinable generado por Postgres). El link de baja en cada mail apunta a `/baja/[token]`, que muestra una página de confirmación. Al confirmar, `POST /api/baja/[token]` marca `unsubscribed_at`.
+
+### Estado de cadencia (columnas en `encuestas`)
+
+| Columna | Qué registra |
+|---|---|
+| `unsubscribe_token` | UUID único de baja |
+| `unsubscribed_at` | Timestamp de la baja |
+| `clickeo_at` | Primer clic en el link del informe (analytics, no frena cadencia) |
+| `clic_fiable_at` | Primer clic en el link a fiable (señal de interés — frena seg2) |
+| `enviado_seguimiento1_at` | Timestamp de envío del mail 2 |
+| `enviado_seguimiento2_at` | Timestamp de envío del mail 3 |
+| `informes.email_enviado_at` | Timestamp de envío del mail 1 |
+
+### Motor de envío (cron)
+
+`/api/cron/cadencia` corre diariamente a las 10:00 UTC (configurado en `vercel.json`). Protegido con `Authorization: Bearer ${CRON_SECRET}`. Idempotente: verifica estado antes de enviar y marca inmediatamente después — un cron que corra dos veces no reenvía.
+
+**Modo test (solo en development):** `GET /api/cron/cadencia?test=1` con header correcto usa umbrales de 1 y 2 minutos en vez de 3 y 7 días.
+
+### Robustez — regla de oro
+
+El envío de mail NO rompe el flujo principal. Si Resend falla en el inmediato, el lead y el informe ya están guardados. Si falla un envío en el cron batch, se loguea y se continúa con el siguiente contacto.
+
+### Variables de entorno
+
+| Variable | Valor | Dónde |
+|---|---|---|
+| `RESEND_API_KEY` | Clave de Resend | Backend only |
+| `EMAIL_FROM` | `diagnostico@farodenegocios.com.ar` (dev: `onboarding@resend.dev`) | Backend only |
+| `SITE_URL` | `https://farodenegocios.com.ar` | Backend only |
+| `CRON_SECRET` | String aleatorio largo | Backend only |
 
 ## 14. Anti-objetivos (lo que NO hacer)
 

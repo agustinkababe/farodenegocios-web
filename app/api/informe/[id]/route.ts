@@ -105,7 +105,11 @@ export async function GET(
     const host = request.headers.get("host") ?? "localhost:3000";
     const protocol = host.startsWith("localhost") ? "http" : "https";
     const siteUrl = process.env.SITE_URL ?? `${protocol}://${host}`;
-    const informeUrl = `${siteUrl}/informe/${id}`;
+    const informeUrl = `${siteUrl}/r/${id}`;
+
+    const unsubscribeUrl = encuesta.unsubscribe_token
+      ? `${siteUrl}/baja/${encuesta.unsubscribe_token}`
+      : `${siteUrl}/baja`;
 
     try {
       await enviarMailInforme({
@@ -113,14 +117,21 @@ export async function GET(
         rubro: datosSector?.rubro_display ?? encuesta.rubro,
         titulo: contenido.titulo,
         seccion_espejo: contenido.seccion_espejo,
-        informeUrl,
+        informeUrl,   // ya es /r/[id] — registra el clic antes de redirigir
+        unsubscribeUrl,
       });
 
-      // Registramos que el mail fue enviado para no reenviar y tener estado para la cadencia futura
-      await supabase
-        .from("informes")
-        .update({ email_enviado_at: new Date().toISOString() })
-        .eq("id", informeGuardado.id);
+      const ahoraIso = new Date().toISOString();
+      await Promise.all([
+        supabase
+          .from("informes")
+          .update({ email_enviado_at: ahoraIso })
+          .eq("id", informeGuardado.id),
+        supabase
+          .from("encuestas")
+          .update({ enviado_informe_at: ahoraIso })
+          .eq("id", id),
+      ]);
     } catch (errMail) {
       console.error("Error enviando mail de informe (lead conservado):", errMail);
     }
