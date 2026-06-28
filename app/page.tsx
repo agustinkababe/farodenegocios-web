@@ -3,7 +3,7 @@ import { createServerClient } from "@/lib/supabase-server";
 import { SiteHeader } from "@/app/components/SiteHeader";
 import { SiteFooter } from "@/app/components/SiteFooter";
 
-export const revalidate = 60;
+export const revalidate = 300; // 5 minutos: sincronizado con /articulos
 
 // ── Íconos ────────────────────────────────────────────────────────────────
 

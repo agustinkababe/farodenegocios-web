@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "Guías y contexto para dueños de PyMEs argentinas: operación, tecnología, ventas y el día a día del negocio.",
 };
 
-export const revalidate = 60;
+export const revalidate = 300; // 5 minutos: artículos se publican 3x/semana, no necesita ser inmediato
 
 type ArticuloResumen = {
   id: string;

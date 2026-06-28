@@ -8,5 +8,11 @@ export function createServerClient() {
   }
   return createClient(url, key, {
     auth: { persistSession: false },
+    global: {
+      // Fuerza que los fetch internos del SDK no usen el caché de Next.js.
+      // Sin esto, Next.js cachea los requests de Supabase con force-cache y las
+      // páginas ISR sirven datos congelados aunque el timer de revalidación expire.
+      fetch: (input, init) => fetch(input, { ...init, cache: "no-store" }),
+    },
   });
 }
