@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     "Guías y contexto para dueños de PyMEs argentinas: operación, tecnología, ventas y el día a día del negocio.",
 };
 
-export const revalidate = 300; // 5 minutos: artículos se publican 3x/semana, no necesita ser inmediato
+export const dynamic = "force-dynamic"; // DIAGNÓSTICO TEMPORAL — volver a revalidate=300 cuando esté resuelto
 
 type ArticuloResumen = {
   id: string;
@@ -27,6 +27,10 @@ type ArticuloResumen = {
 export default async function ArticulosPage() {
   let articulos: ArticuloResumen[] = [];
 
+  // ── DIAGNÓSTICO: logging completo para Vercel logs ──────────────────────
+  console.log("[articulos] NEXT_PUBLIC_SUPABASE_URL:", process.env.NEXT_PUBLIC_SUPABASE_URL ?? "UNDEFINED");
+  console.log("[articulos] SUPABASE_SERVICE_ROLE_KEY set:", !!process.env.SUPABASE_SERVICE_ROLE_KEY);
+
   try {
     const supabase = createServerClient();
     const { data, error } = await supabase
@@ -35,10 +39,14 @@ export default async function ArticulosPage() {
       .eq("estado", "publicado")
       .order("created_at", { ascending: false });
 
+    console.log("[articulos] filas devueltas:", data?.length ?? 0);
+    if (error) console.error("[articulos] error Supabase:", JSON.stringify(error));
+
     if (!error && data) articulos = data as ArticuloResumen[];
-  } catch {
-    // En dev sin DB configurada, muestra estado vacío
+  } catch (err) {
+    console.error("[articulos] excepción al conectar con Supabase:", err);
   }
+  // ── FIN DIAGNÓSTICO ──────────────────────────────────────────────────────
 
   return (
     <div className="min-h-screen flex flex-col bg-bg font-sans text-warm">
