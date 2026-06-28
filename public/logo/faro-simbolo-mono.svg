@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 88" width="72" height="88" role="img" aria-label="Faro de Negocios">
+  <polygon points="29,30 43,30 47,78 25,78" fill="#0C2236"></polygon>
+  <rect x="22" y="76" width="28" height="6" rx="1.5" fill="#0C2236"></rect>
+  <polygon points="29,22 43,22 36,12" fill="#0C2236"></polygon>
+  <rect x="30" y="22" width="12" height="10" rx="1.5" fill="none" stroke="#0C2236" stroke-width="2.4"></rect>
+  <rect x="30" y="25.5" width="12" height="3" fill="#0C2236"></rect>
+</svg>

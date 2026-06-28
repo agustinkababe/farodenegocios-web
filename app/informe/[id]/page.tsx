@@ -216,11 +216,14 @@ export default function InformePage() {
     <div className="min-h-screen bg-bg print:bg-white font-sans">
 
       {/* ── Header web — oculto en impresión ── */}
-      <header className="bg-surface border-b border-line px-4 py-4 print:hidden">
+      <header className="bg-surface border-b border-line px-4 py-[14px] print:hidden">
         <div className="max-w-2xl mx-auto flex items-center justify-between">
-          <span className="font-display text-[15px] font-semibold text-ink">
-            Faro de Negocios
-          </span>
+          <img
+            src="/logo/faro-lockup-horizontal.svg"
+            alt="Faro de Negocios"
+            height={36}
+            style={{ height: 36, width: "auto" }}
+          />
           <button
             onClick={() => window.print()}
             className="flex items-center gap-1.5 text-xs text-muted hover:text-ink border border-line hover:border-ink/30 rounded-[4px] px-3 py-1.5 transition-colors"
@@ -241,9 +244,12 @@ export default function InformePage() {
 
       {/* ── Cabecera de impresión ── */}
       <div className="hidden print:flex items-center justify-between px-0 pt-0 pb-5 border-b border-line mb-6">
-        <span className="font-display text-sm font-semibold text-ink">
-          Faro de Negocios
-        </span>
+        <img
+          src="/logo/faro-lockup-horizontal.svg"
+          alt="Faro de Negocios"
+          height={22}
+          style={{ height: 22, width: "auto" }}
+        />
         <span className="font-sans text-xs text-muted">
           Diagnóstico PyME — Confidencial
         </span>

@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 430 92" width="430" height="92" role="img" aria-label="Faro de Negocios">
+  <defs>
+    
+  </defs>
+  <g transform="translate(4,11) scale(0.8)">
+    <polygon points="36,30 70,8 70,20 36,38" fill="#E0A33E" opacity="0.26"></polygon>
+    <polygon points="36,30 2,8 2,20 36,38" fill="#E0A33E" opacity="0.26"></polygon>
+    <polygon points="29,30 43,30 47,78 25,78" fill="#0C2236"></polygon>
+    <rect x="22" y="76" width="28" height="6" rx="1.5" fill="#0C2236"></rect>
+    <rect x="30" y="22" width="12" height="10" rx="1.5" fill="#E0A33E"></rect>
+    <polygon points="29,22 43,22 36,12" fill="#0C2236"></polygon>
+    <circle cx="36" cy="27" r="2.2" fill="#FFFDF8"></circle>
+  </g>
+  <text class="wm" x="78" y="56" font-size="36" letter-spacing="-0.3" fill="#0C2236">Faro de Negocios</text>
+</svg>

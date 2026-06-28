@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Newsreader, Libre_Franklin, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { DiagnosticoPopup } from "@/app/components/DiagnosticoPopup";
 
 const newsreader = Newsreader({
   variable: "--font-newsreader",
@@ -27,6 +28,9 @@ export const metadata: Metadata = {
   title: "Faro de Negocios",
   description:
     "Diagnóstico gratuito para PyMEs argentinas. Descubrí cómo está tu negocio frente a los de tu rubro.",
+  icons: {
+    icon: "/logo/faro-avatar-cuadrado.svg",
+  },
 };
 
 export default function RootLayout({
@@ -39,7 +43,10 @@ export default function RootLayout({
       lang="es"
       className={`${newsreader.variable} ${libreFranklin.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+        <DiagnosticoPopup />
+      </body>
     </html>
   );
 }

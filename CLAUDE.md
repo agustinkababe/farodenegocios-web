@@ -243,6 +243,8 @@ El proyecto usa DOS motores de IA distintos, con trabajos y exigencias diferente
 - Modelo de negocio: **validado conceptualmente** de punta a punta.
 - Informe de muestra: **probado** con datos reales de CAME (rubro decoración/textiles de hogar) sobre una PyME ficticia. Resultado: el modelo entrega.
 - Corazón funcional: flujo encuesta → informe → mail inmediato → cadencia de seguimiento → baja, todo operativo.
+- Motor de artículos completo: backend (generación IA, auto-publicación, admin) + front público (/articulos, /articulos/[slug]) + vidriera en home.
+- Publicación de artículos: **automatizada** — cron lunes/miércoles/viernes a las 08:00 UTC. Cuatro tipos: `educativo`, `como-hacer`, `casos`, `coyuntura`. Los cuatro se generan y publican automáticamente sin revisión manual. `coyuntura` en modo auto usa prosa cualitativa honesta (sin placeholders); los placeholders `[DATO: ...]` solo aparecen en el flujo manual.
 - Próximo hito: validar con UNA PyME real.
 - Nombre/dominio del portal: **Faro de Negocios** — farodenegocios.com.ar (dominio disponible en nic.ar al momento de definirlo). Handle de Instagram @farodenegocios también disponible. Universo de marca asociado: luz, guía, navegar, rumbo en la tormenta (conecta con la coyuntura de crisis PyME sin envejecer con ella).
 
@@ -264,11 +266,62 @@ Este registro existe para que nadie borre código "sin uso" sin entender el cont
 
 **NO borrar este código** — es infraestructura lista que solo necesita datos.
 
-### Sección de artículos (PENDIENTE — no empezar hasta que el corazón esté validado)
+### Motor de artículos — Partes A y B (ACTIVO — completo)
 
-**Qué es:** Pilar de SEO/tráfico del portal. Artículos genéricos sobre temas del mundo PyME argentino, generados con IA. La página placeholder `app/articulos/page.tsx` está reservada.
+**Qué es:** Motor IA de generación y publicación automática de artículos genéricos para SEO/tráfico. Dos tablas propias, pipeline automático con cron + disparo manual, admin UI para el flujo manual si se necesita.
 
-**Estado:** No comenzado. Ver regla de orden de construcción (sección 10): los artículos son "el cuerpo", que no se construye antes de que el corazón esté validado con PyMEs reales.
+**Flujo por defecto (automático):**
+1. `GET /api/cron/publicar-articulos` (cron lunes/miércoles/viernes 08:00 UTC) — llama a `autoPublicarArticulos(N)`.
+2. `autoPublicarArticulos()` busca temas `aprobado` (cualquier tipo) sin artículo. Si no hay suficientes, genera un lote nuevo con `proponerTemas()` y los auto-aprueba todos. Genera artículos en `modo: "auto"` y los inserta directamente en `estado: "publicado"` sin pasar por borrador.
+3. `coyuntura` en modo auto se escribe con prosa cualitativa honesta — sin placeholders `[DATO: ...]`. Es publicable directo.
+
+**Disparo manual:**
+- `POST /api/admin/articulos/auto-publicar` (header `x-admin-secret`) — misma lógica que el cron, disparo inmediato. Body opcional: `{ "limite": N }` para sobreescribir `ARTICULOS_POR_CORRIDA` en esa corrida.
+
+**Flujo manual (conservado, no por defecto):**
+- `POST /api/admin/articulos/temas/proponer` → propone temas
+- `POST /api/admin/articulos/temas/[id]/aprobar` → aprueba manualmente
+- `POST /api/admin/articulos/temas/[id]/generar` → genera en borrador, en `modo: "manual"` (coyuntura incluye `[DATO: ...]`)
+- `POST /api/admin/articulos/[id]/publicar` → publica manualmente tras revisión
+- UI: `app/admin/articulos/`
+
+**Tipos de artículo (cuatro):**
+- `educativo`: atemporal, conceptual. Sin datos estadísticos.
+- `como-hacer`: guía paso a paso con **Paso N:** en negrita. Accionable.
+- `casos`: historia ilustrativa. Abre aclarando que es un caso ilustrativo, nunca un caso real. Sin cifras inventadas.
+- `coyuntura`: contexto del mercado. Auto = cualitativo honesto. Manual = `[DATO: ...]` para revisión.
+
+**Barandas anti-duplicado (automáticas, nunca desactivar):**
+1. Hash SHA-256 del título normalizado — columna `UNIQUE` en `articulos_temas` y en `articulos`. Bloquea temas y contenido duplicado.
+2. Chequeo de `tema_id` antes de generar — no genera si ya existe artículo para ese tema.
+3. Tope estricto por corrida — `ARTICULOS_POR_CORRIDA` (env var). El loop nunca supera ese número. Límite máximo hardcoded: 20.
+
+**Re-procesamiento de imágenes:**
+- `POST /api/admin/articulos/[id]/reimagen` — re-busca portada para un artículo específico (sin regenerar contenido).
+- `POST /api/admin/articulos/reimagen-batch` — re-busca portadas para todos los artículos sin imagen.
+- `buscarPortada()` en `lib/generarArticulo.ts` usa cascada: keyword específica → primer término → genéricos ("small business", "shop interior", "store").
+
+**Anti-dedup:** SHA-256 sobre título normalizado (lowercase, sin acentos, sin puntuación), guardado en columna `hash UNIQUE`. Previene duplicados en temas y en artículos independientemente.
+
+**Env vars:**
+- `OPENAI_MODEL_ARTICULOS` (opcional; fallback: `OPENAI_MODEL` → `gpt-4o-mini`)
+- `UNSPLASH_ACCESS_KEY` — API key de Unsplash para imágenes de portada. Sin prefijo NEXT_PUBLIC; solo backend. Sin esta key las portadas se generan como null y los artículos muestran el placeholder de marca.
+- `ARTICULOS_POR_CORRIDA` — máximo de artículos que publica el cron por ejecución (default: 3; rango válido: 1–20). Subir este número aumenta el costo por corrida (IA + Unsplash).
+
+**Estado Parte B (completo):**
+- `app/articulos/page.tsx` — índice público; tarjetas con portada (imagen Unsplash o placeholder de marca), extracto, tipo, fecha; revalidación ISR 60s
+- `app/articulos/[slug]/page.tsx` — artículo individual: portada con atribución Unsplash, markdown → HTML, SEO completo (title, description, OG con imagen, Twitter card `summary_large_image`), solo artículos `publicado` son accesibles
+- `app/components/SiteHeader.tsx` + `SiteFooter.tsx` — componentes compartidos con logo y nav
+- `app/page.tsx` — home con vidriera de 3 artículos recientes + bloque CTA diagnóstico intercalado
+- `marked` — paquete para renderizar markdown → HTML en el servidor
+- **Prose styles** en `globals.css`: `.prose a[href="/encuesta"]` auto-estiliza el CTA de cierre como botón ámbar
+
+**Portadas Unsplash:**
+- La IA genera `portada_keywords` (1-2 palabras en inglés) junto con cada artículo
+- `buscarPortada()` busca en Unsplash API y guarda `portada_url` + `portada_credito` (JSON con nombre/perfil/foto del autor)
+- Atribución mostrada en el pie de la imagen: "Foto de [nombre] en Unsplash" con links obligatorios por ToS
+- El endpoint de descarga de Unsplash se llama como fire-and-forget al elegir la foto (requerido por sus API guidelines)
+- Fallback cuando no hay imagen: placeholder marino con símbolo de marca tenue
 
 ### Columnas de telemetría sin dashboard aún
 
@@ -277,3 +330,68 @@ Las siguientes columnas de DB se escriben pero aún no se consumen en ningún da
 - `informes.email_enviado_at` — registra cuándo se envió el mail inmediato. La cadencia usa `encuestas.enviado_informe_at` como referencia; esta columna es redundante pero tiene valor archivístico.
 
 **No borrar estas columnas** — los datos acumulados van a alimentar analytics cuando se construya el dashboard.
+
+## 17. SQL pendiente de correr en Supabase
+
+### Motor de artículos (Parte A)
+
+```sql
+-- Catálogo de temas propuestos por IA
+create table if not exists articulos_temas (
+  id         uuid primary key default gen_random_uuid(),
+  titulo     text not null,
+  tipo       text not null check (tipo in ('educativo', 'coyuntura')),
+  estado     text not null default 'propuesto'
+               check (estado in ('propuesto', 'aprobado', 'rechazado')),
+  hash       text not null unique,
+  created_at timestamptz not null default now()
+);
+
+-- Artículos generados
+create table if not exists articulos (
+  id           uuid primary key default gen_random_uuid(),
+  tema_id      uuid references articulos_temas(id) on delete set null,
+  titulo       text not null,
+  slug         text not null unique,
+  cuerpo       text not null,
+  tipo         text not null check (tipo in ('educativo', 'coyuntura')),
+  estado       text not null default 'borrador'
+                 check (estado in ('borrador', 'publicado', 'rechazado')),
+  hash         text not null unique,
+  modelo_usado text,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+
+-- Índices útiles
+create index if not exists articulos_temas_estado_idx on articulos_temas(estado);
+create index if not exists articulos_estado_idx       on articulos(estado);
+create index if not exists articulos_slug_idx         on articulos(slug);
+
+-- RLS (las tablas son de acceso admin-only vía API routes con checkAuth — RLS deshabilitado como el resto)
+alter table articulos_temas disable row level security;
+alter table articulos       disable row level security;
+```
+
+### Portadas Unsplash (columnas nuevas en `articulos`)
+
+```sql
+-- Correr sobre la tabla ya existente
+alter table articulos
+  add column if not exists portada_url      text,
+  add column if not exists portada_keywords text,
+  add column if not exists portada_credito  text;
+```
+
+### Tipos nuevos de artículo: como-hacer y casos
+
+```sql
+-- Ampliar el CHECK de tipo en ambas tablas para aceptar los cuatro tipos
+alter table articulos_temas drop constraint if exists articulos_temas_tipo_check;
+alter table articulos_temas add constraint articulos_temas_tipo_check
+  check (tipo in ('educativo', 'coyuntura', 'como-hacer', 'casos'));
+
+alter table articulos drop constraint if exists articulos_tipo_check;
+alter table articulos add constraint articulos_tipo_check
+  check (tipo in ('educativo', 'coyuntura', 'como-hacer', 'casos'));
+```

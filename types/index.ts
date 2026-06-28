@@ -42,6 +42,34 @@ export type DatosSectorStagingRow = DatosSectorRow & {
   origen: string | null;
 };
 
+export type ArticuloTipo = "educativo" | "coyuntura" | "como-hacer" | "casos";
+
+export type ArticuloTemaRow = {
+  id: string;
+  titulo: string;
+  tipo: ArticuloTipo;
+  estado: "propuesto" | "aprobado" | "rechazado";
+  hash: string;
+  created_at: string;
+};
+
+export type ArticuloRow = {
+  id: string;
+  tema_id: string | null;
+  titulo: string;
+  slug: string;
+  cuerpo: string;
+  tipo: ArticuloTipo;
+  estado: "borrador" | "publicado" | "rechazado";
+  hash: string;
+  modelo_usado: string | null;
+  portada_url: string | null;
+  portada_keywords: string | null;
+  portada_credito: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type InformeRow = {
   id: string;
   encuesta_id: string;

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 96 96" width="96" height="96" role="img" aria-label="Faro de Negocios">
+  <rect x="0" y="0" width="96" height="96" rx="20" fill="#0C2236"></rect>
+  <g transform="translate(48,49) scale(0.82) translate(-36,-47)">
+    <polygon points="29,30 43,30 47,78 25,78" fill="#F4EFE4"></polygon>
+    <rect x="22" y="76" width="28" height="6" rx="1.5" fill="#F4EFE4"></rect>
+    <rect x="30" y="22" width="12" height="10" rx="1.5" fill="#E0A33E"></rect>
+    <polygon points="29,22 43,22 36,12" fill="#F4EFE4"></polygon>
+  </g>
+</svg>

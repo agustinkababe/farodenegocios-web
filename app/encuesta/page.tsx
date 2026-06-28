@@ -235,12 +235,15 @@ export default function EncuestaPage() {
     <div className="min-h-screen bg-bg flex flex-col font-sans">
 
       {/* ── Header con barra de progreso ── */}
-      <header className="bg-surface border-b border-line px-4 py-3">
+      <header className="bg-surface border-b border-line px-4 py-3.5">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between mb-2.5">
-            <span className="font-display text-[15px] font-semibold text-ink">
-              Faro de Negocios
-            </span>
+            <img
+              src="/logo/faro-lockup-horizontal.svg"
+              alt="Faro de Negocios"
+              height={36}
+              style={{ height: 36, width: "auto" }}
+            />
             <span className="text-xs text-muted">
               {paso + 1} de {totalPasos}
             </span>

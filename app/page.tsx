@@ -1,6 +1,12 @@
 import Link from "next/link";
+import { createServerClient } from "@/lib/supabase-server";
+import { SiteHeader } from "@/app/components/SiteHeader";
+import { SiteFooter } from "@/app/components/SiteFooter";
 
-// ── Icono de flecha derecha ───────────────────────────────────────────────
+export const revalidate = 60;
+
+// ── Íconos ────────────────────────────────────────────────────────────────
+
 function ArrowRight({ className = "" }: { className?: string }) {
   return (
     <svg
@@ -22,7 +28,6 @@ function ArrowRight({ className = "" }: { className?: string }) {
   );
 }
 
-// ── Icono de check para lista ─────────────────────────────────────────────
 function CheckMark() {
   return (
     <span className="mt-[3px] flex-shrink-0 w-[18px] h-[18px] rounded-full bg-accent/15 border border-accent/30 flex items-center justify-center">
@@ -39,7 +44,6 @@ function CheckMark() {
   );
 }
 
-// ── Botón CTA principal ───────────────────────────────────────────────────
 function CtaButton({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <Link
@@ -52,31 +56,50 @@ function CtaButton({ href, children }: { href: string; children: React.ReactNode
   );
 }
 
+// ── Utilidades ────────────────────────────────────────────────────────────
+
+function extractExcerpt(cuerpo: string, maxLen = 120): string {
+  const plain = cuerpo
+    .replace(/#{1,6}\s+/g, "")
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/\*(.+?)\*/g, "$1")
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
+    .replace(/^[-*+]\s+/gm, "")
+    .replace(/\n+/g, " ")
+    .trim();
+  if (plain.length <= maxLen) return plain;
+  return plain.slice(0, maxLen).replace(/\s\S*$/, "") + "…";
+}
+
+type ArticuloPreview = {
+  id: string;
+  titulo: string;
+  slug: string;
+  tipo: "educativo" | "coyuntura";
+  cuerpo: string;
+};
+
 // ── Home ─────────────────────────────────────────────────────────────────
-export default function HomePage() {
+
+export default async function HomePage() {
+  // Artículos recientes para la sección de vidriera
+  let articulosRecientes: ArticuloPreview[] = [];
+  try {
+    const supabase = createServerClient();
+    const { data } = await supabase
+      .from("articulos")
+      .select("id, titulo, slug, tipo, cuerpo")
+      .eq("estado", "publicado")
+      .order("created_at", { ascending: false })
+      .limit(3);
+    if (data) articulosRecientes = data as ArticuloPreview[];
+  } catch {
+    // Sin DB configurada en dev → estado vacío
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-bg font-sans text-warm">
-
-      {/* ── Header ── */}
-      <header className="sticky top-0 z-20 bg-surface/90 backdrop-blur-sm border-b border-line">
-        <div className="max-w-5xl mx-auto px-6 h-[60px] flex items-center justify-between">
-
-          {/* Logo — placeholder hasta tener el SVG definitivo */}
-          <div className="flex items-center gap-2.5" aria-label="Faro de Negocios">
-            {/* PLACEHOLDER LOGO: reemplazar este bloque por el SVG real */}
-            <div className="w-7 h-7 rounded-[4px] bg-ink flex items-center justify-center flex-shrink-0">
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                <path d="M7 1v4M4 5h6M5 5l-1 7h6l-1-7" stroke="#E0A33E" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </div>
-            {/* FIN PLACEHOLDER LOGO */}
-            <span className="font-display text-[17px] font-semibold text-ink tracking-tight">
-              Faro de Negocios
-            </span>
-          </div>
-
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="flex-1">
 
@@ -104,40 +127,90 @@ export default function HomePage() {
         {/* ── Divider ── */}
         <div className="border-t border-line" />
 
+        {/* ── Artículos recientes ── */}
+        {articulosRecientes.length > 0 && (
+          <>
+            <section className="py-16 px-6 bg-surface">
+              <div className="max-w-5xl mx-auto">
+                <div className="flex items-end justify-between mb-10 gap-4">
+                  <div>
+                    <p className="font-sans text-xs font-semibold text-muted uppercase tracking-[0.12em] mb-2">
+                      Del portal
+                    </p>
+                    <h2 className="font-display text-[1.6rem] font-semibold text-ink tracking-tight">
+                      Para entender qué pasa
+                    </h2>
+                  </div>
+                  <Link
+                    href="/articulos"
+                    className="font-sans text-[13px] font-semibold text-navy-700 hover:text-ink flex items-center gap-1 transition-colors whitespace-nowrap"
+                  >
+                    Ver todos <ArrowRight />
+                  </Link>
+                </div>
+
+                <div className="grid gap-px bg-line sm:grid-cols-2 lg:grid-cols-3 rounded-[8px] overflow-hidden border border-line">
+                  {articulosRecientes.map((a) => (
+                    <Link
+                      key={a.id}
+                      href={`/articulos/${a.slug}`}
+                      className="group flex flex-col gap-3 bg-surface p-6 hover:bg-bg transition-colors duration-150"
+                    >
+                      {a.tipo === "coyuntura" && (
+                        <span className="self-start font-sans text-[10px] font-semibold text-accent-600 bg-accent/10 px-2 py-0.5 rounded-sm uppercase tracking-wide">
+                          Contexto
+                        </span>
+                      )}
+                      <h3 className="font-display text-[1.05rem] font-semibold text-ink leading-snug group-hover:text-navy-700 transition-colors duration-150">
+                        {a.titulo}
+                      </h3>
+                      <p className="font-sans text-[13px] text-muted leading-[1.65] flex-1">
+                        {extractExcerpt(a.cuerpo)}
+                      </p>
+                      <span className="font-sans text-[12px] font-semibold text-navy-700 flex items-center gap-1 mt-1">
+                        Leer
+                        <ArrowRight className="w-3 h-3" />
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            </section>
+
+            <div className="border-t border-line" />
+          </>
+        )}
+
         {/* ── Cómo funciona ── */}
         <section className="py-20 px-6">
           <div className="max-w-4xl mx-auto">
             <h2 className="font-display text-[1.6rem] font-semibold text-ink text-center mb-14 tracking-tight">
-              Cómo funciona
+              Cómo funciona el diagnóstico
             </h2>
             <div className="grid md:grid-cols-3 gap-10 md:gap-8">
               {[
                 {
                   n: "01",
                   title: "Contás cómo funciona tu negocio",
-                  desc:  "10 preguntas sobre operación, pedidos, stock y lo que más te pesa. Menos de 3 minutos.",
+                  desc: "10 preguntas sobre operación, pedidos, stock y lo que más te pesa. Menos de 3 minutos.",
                 },
                 {
                   n: "02",
                   title: "Lo cruzamos con el contexto del sector",
-                  desc:  "Tu situación puntual + cómo está el rubro ahora mismo. Sin datos inventados.",
+                  desc: "Tu situación puntual + cómo está el rubro ahora mismo. Sin datos inventados.",
                 },
                 {
                   n: "03",
                   title: "Te llega el informe al mail",
-                  desc:  "Diagnóstico honesto: qué está bien, dónde está el freno, y por dónde arrancar.",
+                  desc: "Diagnóstico honesto: qué está bien, dónde está el freno, y por dónde arrancar.",
                 },
               ].map((step) => (
                 <div key={step.n} className="flex flex-col gap-3">
-                  <span className="font-mono text-[13px] font-medium text-accent">
-                    {step.n}
-                  </span>
+                  <span className="font-mono text-[13px] font-medium text-accent">{step.n}</span>
                   <h3 className="font-sans font-semibold text-ink text-[16px] leading-snug">
                     {step.title}
                   </h3>
-                  <p className="font-sans text-[14px] text-muted leading-[1.65]">
-                    {step.desc}
-                  </p>
+                  <p className="font-sans text-[14px] text-muted leading-[1.65]">{step.desc}</p>
                 </div>
               ))}
             </div>
@@ -164,12 +237,35 @@ export default function HomePage() {
               ].map((item) => (
                 <li key={item} className="flex items-start gap-3">
                   <CheckMark />
-                  <span className="font-sans text-[15px] text-warm leading-[1.65]">
-                    {item}
-                  </span>
+                  <span className="font-sans text-[15px] text-warm leading-[1.65]">{item}</span>
                 </li>
               ))}
             </ul>
+          </div>
+        </section>
+
+        {/* ── Divider ── */}
+        <div className="border-t border-line" />
+
+        {/* ── Bloque inline diagnóstico (entre contenido y CTA final) ── */}
+        <section className="py-14 px-6">
+          <div className="max-w-2xl mx-auto bg-ink rounded-[12px] px-8 py-10 text-center">
+            <p className="font-sans text-xs font-semibold text-accent uppercase tracking-[0.12em] mb-4">
+              Diagnóstico gratuito
+            </p>
+            <h2 className="font-display text-[1.7rem] font-semibold text-surface leading-tight tracking-tight mb-4">
+              ¿Sabés cuál es el freno más grande de tu negocio?
+            </h2>
+            <p className="font-sans text-[14px] text-surface/70 leading-[1.7] mb-7">
+              Menos de 3 minutos. Recibirás un informe real a tu mail, no un PDF genérico.
+            </p>
+            <Link
+              href="/encuesta"
+              className="inline-flex items-center gap-2 bg-accent hover:bg-accent-600 text-ink font-sans font-semibold px-7 py-3.5 rounded-[6px] text-[15px] leading-none transition-colors duration-150"
+            >
+              Empezar el diagnóstico
+              <ArrowRight />
+            </Link>
           </div>
         </section>
 
@@ -192,18 +288,7 @@ export default function HomePage() {
 
       </main>
 
-      {/* ── Footer ── */}
-      <footer className="border-t border-line py-7 px-6">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
-          <span className="font-display text-[13px] font-medium text-ink">
-            Faro de Negocios
-          </span>
-          <span className="font-sans text-xs text-muted">
-            farodenegocios.com.ar
-          </span>
-        </div>
-      </footer>
-
+      <SiteFooter />
     </div>
   );
 }

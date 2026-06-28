@@ -37,6 +37,84 @@ body {
   font-family: var(--font-libre-franklin), system-ui, sans-serif;
 }
 
+/* ── Prose (artículos) ──────────────────────────────────────────────────── */
+.prose {
+  color: var(--color-warm);
+  font-size: 17px;
+  line-height: 1.78;
+  max-width: 68ch;
+}
+
+.prose p {
+  margin-top: 0;
+  margin-bottom: 1.3rem;
+}
+
+.prose strong {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.prose em {
+  font-style: italic;
+}
+
+.prose ul {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin-bottom: 1.3rem;
+}
+
+.prose ol {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin-bottom: 1.3rem;
+}
+
+.prose li {
+  margin-bottom: 0.45rem;
+}
+
+.prose blockquote {
+  border-left: 3px solid var(--color-accent);
+  padding-left: 1.25rem;
+  color: var(--color-muted);
+  font-style: italic;
+  margin: 1.75rem 0;
+}
+
+.prose hr {
+  border: none;
+  border-top: 1px solid var(--color-line);
+  margin: 2.5rem 0;
+}
+
+.prose a {
+  color: var(--color-navy-700);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* CTA al diagnóstico que el motor IA genera al final de cada artículo */
+.prose a[href="/encuesta"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--color-accent);
+  color: var(--color-ink);
+  font-weight: 600;
+  font-size: 15px;
+  padding: 0.65rem 1.35rem;
+  border-radius: 6px;
+  text-decoration: none;
+  margin-top: 0.5rem;
+  transition: background-color 0.15s;
+}
+
+.prose a[href="/encuesta"]:hover {
+  background-color: var(--color-accent-600);
+}
+
 /* ── Print (informe PDF) ────────────────────────────────────────────────── */
 @media print {
   @page {
