@@ -11,6 +11,13 @@ function getResend(): Resend {
   return _resend;
 }
 
+function getFrom(): string {
+  const addr = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
+  // En dev Resend solo acepta onboarding@resend.dev sin display name
+  if (addr === "onboarding@resend.dev") return addr;
+  return `Faro de Negocios <${addr}>`;
+}
+
 function primerParrafo(texto: string): string {
   return (
     texto
@@ -62,7 +69,7 @@ export type DatosMailSeguimiento = {
 
 export async function enviarMailInforme(datos: DatosMailInforme): Promise<void> {
   const resend = getResend();
-  const from   = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
+  const from   = getFrom();
   const extracto = primerParrafo(datos.seccion_espejo);
 
   await resend.emails.send({
@@ -108,15 +115,7 @@ function buildHtmlInforme({
 
     ${botonCta("Ver mi informe completo", informeUrl)}
 
-    <p style="margin:28px 0 0;font-size:13px;color:#7A746A;line-height:1.65;
-              border-top:1px solid #E4DECF;padding-top:20px;
-              font-family:Arial,Helvetica,sans-serif;">
-      Si algo de lo que describe resonó con tu negocio,
-      <a href="https://fiable.com.ar"
-         style="color:#18405F;text-decoration:none;font-weight:600;">fiable</a>
-      desarrolla exactamente ese tipo de solución para PyMEs argentinas —
-      sin el costo ni los tiempos de antes.
-    </p>
+    ${bloqueFiable("inmediato")}
     `,
     unsubscribeUrl
   );
@@ -126,7 +125,7 @@ function buildHtmlInforme({
 
 export async function enviarMailSeguimiento1(datos: DatosMailSeguimiento): Promise<void> {
   const resend = getResend();
-  const from   = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
+  const from   = getFrom();
 
   await resend.emails.send({
     from,
@@ -190,7 +189,9 @@ function buildHtmlSeguimiento1({
 
     ${botonCta("Ver cómo lo hacemos en fiable", fiableUrl)}
 
-    <p style="margin:24px 0 0;font-size:13px;color:#7A746A;line-height:1.65;
+    ${bloqueFiable("seguimiento1")}
+
+    <p style="margin:16px 0 0;font-size:13px;color:#7A746A;line-height:1.65;
               font-family:Arial,Helvetica,sans-serif;">
       Tu informe también sigue disponible:
       <a href="${informeUrl}"
@@ -205,7 +206,7 @@ function buildHtmlSeguimiento1({
 
 export async function enviarMailSeguimiento2(datos: DatosMailSeguimiento): Promise<void> {
   const resend = getResend();
-  const from   = process.env.EMAIL_FROM ?? "onboarding@resend.dev";
+  const from   = getFrom();
 
   await resend.emails.send({
     from,
@@ -267,7 +268,9 @@ function buildHtmlSeguimiento2({
 
     ${botonCta("Contactar a fiable", fiableUrl)}
 
-    <p style="margin:24px 0 0;font-size:13px;color:#7A746A;line-height:1.65;
+    ${bloqueFiable("seguimiento2")}
+
+    <p style="margin:16px 0 0;font-size:13px;color:#7A746A;line-height:1.65;
               font-family:Arial,Helvetica,sans-serif;">
       Tu informe:
       <a href="${informeUrl}"
@@ -279,6 +282,104 @@ function buildHtmlSeguimiento2({
 }
 
 // ─── Helpers de layout ────────────────────────────────────────────────────────
+
+const SITE_URL = process.env.SITE_URL ?? "https://farodenegocios.com.ar";
+const FIABLE_UTM = "https://fiable.com.ar/?utm_source=farodenegocios&utm_medium=email";
+
+type FiableVariante = "inmediato" | "seguimiento1" | "seguimiento2";
+
+function bloqueFiable(variante: FiableVariante): string {
+  const logoUrl = `${SITE_URL}/fiable/logo_fiable_text_white.png`;
+
+  const copy: Record<FiableVariante, { titulo: string; cuerpo: string; cta: string; utmCampaign: string }> = {
+    inmediato: {
+      titulo:      "Software a medida para Pymes",
+      cuerpo:      "Si algo de lo que describió el informe resonó con tu negocio, fiable desarrolla exactamente ese tipo de solución — sin el costo ni los tiempos de antes. Primera consulta gratis, sin compromiso.",
+      cta:         "Conocé fiable →",
+      utmCampaign: "email_inmediato",
+    },
+    seguimiento1: {
+      titulo:      "Soluciones que de verdad funcionan",
+      cuerpo:      "Años trabajando para grandes empresas. Hoy, con IA, hacemos en días lo que antes llevaba meses — al precio que tiene sentido para una PyME. Respuesta en menos de 24hs.",
+      cta:         "Hablá con fiable →",
+      utmCampaign: "email_seguimiento1",
+    },
+    seguimiento2: {
+      titulo:      "Tu problema puntual, sin vender lo que no necesitás",
+      cuerpo:      "No somos un ERP ni una plataforma genérica. Somos el equipo que resuelve tu caso — directo, sin burocracia. Primera consulta gratis.",
+      cta:         "Hablar con un asesor →",
+      utmCampaign: "email_seguimiento2",
+    },
+  };
+
+  const { titulo, cuerpo, cta, utmCampaign } = copy[variante];
+  const href = `${FIABLE_UTM}&utm_campaign=${utmCampaign}`;
+
+  return `
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+         style="margin-top:28px;border-radius:10px;overflow:hidden;
+                border:1px solid rgba(22,163,74,0.30);">
+    <tr>
+      <td style="height:4px;background:linear-gradient(to right,#047857,#16A34A,#39D98A);
+                 font-size:0;line-height:0;">&nbsp;</td>
+    </tr>
+    <tr>
+      <td style="background:#0F1F1A;padding:22px 24px 24px;border-radius:0 0 10px 10px;">
+
+        <!-- Logo fiable -->
+        <img src="${logoUrl}"
+             alt="fiable"
+             width="110"
+             style="display:block;height:auto;margin-bottom:14px;"
+        />
+
+        <!-- Tagline -->
+        <p style="margin:0 0 10px;font-size:15px;font-weight:700;
+                  color:#FFFFFF;line-height:1.3;
+                  font-family:Inter,Arial,Helvetica,sans-serif;">
+          ${escHtml(titulo)}
+        </p>
+
+        <!-- Copy -->
+        <p style="margin:0 0 16px;font-size:13px;color:rgba(255,255,255,0.65);
+                  line-height:1.65;font-family:Inter,Arial,Helvetica,sans-serif;">
+          ${escHtml(cuerpo)}
+        </p>
+
+        <!-- Trust signals -->
+        <table role="presentation" cellpadding="0" cellspacing="0"
+               style="margin-bottom:20px;">
+          <tr>
+            <td style="padding-right:16px;font-size:11px;font-weight:600;
+                       color:#39D98A;font-family:Inter,Arial,Helvetica,sans-serif;">
+              ✓ Primera consulta gratis
+            </td>
+            <td style="font-size:11px;font-weight:600;
+                       color:#39D98A;font-family:Inter,Arial,Helvetica,sans-serif;">
+              ✓ Sin compromiso
+            </td>
+          </tr>
+        </table>
+
+        <!-- CTA -->
+        <table role="presentation" cellpadding="0" cellspacing="0">
+          <tr>
+            <td style="background:#16A34A;border-radius:8px;">
+              <a href="${href}"
+                 style="display:inline-block;padding:11px 24px;
+                        font-size:13px;font-weight:700;color:#FFFFFF;
+                        text-decoration:none;letter-spacing:0.01em;
+                        font-family:Inter,Arial,Helvetica,sans-serif;">
+                ${escHtml(cta)}
+              </a>
+            </td>
+          </tr>
+        </table>
+
+      </td>
+    </tr>
+  </table>`;
+}
 
 function botonCta(texto: string, url: string): string {
   return `

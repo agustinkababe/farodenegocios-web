@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { asignarAutor } from "@/lib/autores";
+import { HouseAdContent } from "@/app/components/ads/HouseAdContent";
 
 import type { ArticuloTipo } from "@/types";
 
@@ -119,6 +120,14 @@ export function ArticulosClient({ articulos }: { articulos: ArticuloResumen[] })
                   <ArticuloCard key={a.id} articulo={a} />
                 ))}
               </div>
+              {/* Ad slot: rectangle debajo del grid (mobile/tablet) — en desktop lo cubre la sidebar */}
+              {!buscando && filtrados.length > 0 && (
+                <div className="mt-8 flex justify-center xl:hidden" data-ad-slot="rectangle">
+                  <div className="w-full max-w-[360px]">
+                    <HouseAdContent format="rectangle" />
+                  </div>
+                </div>
+              )}
             </>
           )}
         </div>

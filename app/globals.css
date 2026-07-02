@@ -115,6 +115,43 @@ body {
   background-color: var(--color-accent-600);
 }
 
+/* ── House ads ──────────────────────────────────────────────────────────── */
+
+/* Fade-in de entrada — evita flash del fallback SSR */
+@keyframes house-ad-enter {
+  from { opacity: 0; transform: translateY(5px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.house-ad-enter {
+  animation: house-ad-enter 0.45s ease-out both;
+}
+
+/*
+  Pulse del botón CTA — CONFIGURABLE:
+  · Para ATENUAR: bajar --ad-pulse-size (ej: 4px) o subir --ad-pulse-dur (ej: 3.5s)
+  · Para APAGAR:  poner animation: none en .house-ad-cta, o quitar la clase en el JSX
+  · Para INTENSIFICAR: bajar --ad-pulse-dur y subir --ad-pulse-color opacidad
+*/
+:root {
+  --ad-pulse-dur:   2.4s;
+  --ad-pulse-size:  7px;
+  --ad-pulse-color: rgba(199, 135, 42, 0.55);
+  --ad-pulse-hi:    1.1;   /* brightness en el pico */
+}
+@keyframes house-ad-cta-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 transparent;
+    filter: brightness(1);
+  }
+  50% {
+    box-shadow: 0 0 var(--ad-pulse-size) 2px var(--ad-pulse-color);
+    filter: brightness(var(--ad-pulse-hi));
+  }
+}
+.house-ad-cta {
+  animation: house-ad-cta-pulse var(--ad-pulse-dur) ease-in-out infinite;
+}
+
 /* ── Print (informe PDF) ────────────────────────────────────────────────── */
 @media print {
   @page {

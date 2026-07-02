@@ -297,36 +297,68 @@ export default function InformePage() {
         </section>
 
         {/* CTA fiable — en caliente, justo después del cierre, oculto en PDF */}
-        <div className="rounded-[6px] bg-ink px-6 py-6 text-white print:hidden">
-          <p className="font-sans text-xs font-semibold text-white/40 uppercase tracking-wider mb-3">
-            Quién lo hace
-          </p>
-          <p className="font-sans font-semibold text-base leading-snug text-white">
-            fiable desarrolla exactamente ese tipo de solución para PyMEs.
-          </p>
-          <p className="font-sans mt-2 text-white/70 text-sm leading-relaxed">
-            No el sistema enlatado que no te cierra ni el ERP que no podés
-            pagar. Tecnología hecha para tu proceso puntual, a un costo que
-            tiene sentido para un negocio como el tuyo.
-          </p>
-          <a
-            href="https://fiable.com.ar"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-5 inline-flex items-center gap-2 bg-accent hover:bg-accent-600 text-ink font-sans font-semibold text-sm px-6 py-2.5 rounded-[4px] transition-colors"
-          >
-            Contale tu caso a fiable
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-              <path
-                d="M2.5 7h9M8 3.5l3.5 3.5L8 10.5"
-                stroke="currentColor"
-                strokeWidth="1.4"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+        <a
+          href={`https://fiable.com.ar/?utm_source=farodenegocios&utm_medium=informe&utm_campaign=cta_informe`}
+          target="_blank"
+          rel="noopener noreferrer sponsored"
+          className="group block rounded-[10px] overflow-hidden no-underline border border-[#16A34A]/25 hover:border-[#16A34A]/55 transition-[border-color,box-shadow] duration-300 hover:shadow-[0_8px_32px_rgba(22,163,74,0.18)] print:hidden"
+          style={{ background: "#0F1F1A" }}
+        >
+          {/* Barra verde superior */}
+          <div className="h-[4px] bg-gradient-to-r from-[#047857] via-[#16A34A] to-[#39D98A]" />
+
+          <div className="px-6 py-6 flex flex-col gap-4" style={{ fontFamily: "var(--font-inter, Inter, system-ui, sans-serif)" }}>
+            {/* Logo fiable */}
+            <div className="flex items-center gap-2">
+              <img
+                src="/fiable/logo-fiable-white.svg"
+                alt=""
+                aria-hidden="true"
+                style={{ height: 32, width: "auto" }}
               />
-            </svg>
-          </a>
-        </div>
+              <span style={{ fontSize: 21, fontWeight: 700, color: "#FFFFFF", letterSpacing: "-0.3px", lineHeight: 1 }}>
+                fiable
+              </span>
+            </div>
+
+            {/* Tagline + copy */}
+            <div className="flex flex-col gap-2">
+              <p style={{ margin: 0, fontSize: 16, fontWeight: 700, color: "#FFFFFF", lineHeight: 1.3 }}>
+                Software a medida para Pymes
+              </p>
+              <p style={{ margin: 0, fontSize: 13, color: "rgba(255,255,255,0.65)", lineHeight: 1.65 }}>
+                No el sistema enlatado que no te cierra ni el ERP que no podés pagar.
+                Tecnología hecha para tu proceso puntual, a un costo que tiene sentido
+                para un negocio como el tuyo.
+              </p>
+            </div>
+
+            {/* Trust signals */}
+            <div className="flex flex-wrap gap-x-5 gap-y-1.5">
+              {["Primera consulta gratis", "Respuesta en menos de 24hs", "Sin compromiso"].map((t) => (
+                <span key={t} className="flex items-center gap-1.5" style={{ fontSize: 11, fontWeight: 600, color: "#39D98A" }}>
+                  <svg width="11" height="11" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+                    <circle cx="6" cy="6" r="5.5" stroke="#39D98A" strokeWidth="1"/>
+                    <path d="M3.5 6l1.8 1.8 3-3" stroke="#39D98A" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  {t}
+                </span>
+              ))}
+            </div>
+
+            {/* CTA button */}
+            <span
+              className="group-hover:bg-[#047857] inline-flex items-center gap-2 self-start text-white font-semibold text-sm px-6 py-2.5 rounded-xl transition-colors duration-200"
+              style={{ background: "#16A34A", fontSize: 14, fontWeight: 700 }}
+            >
+              Contale tu caso a fiable
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none" aria-hidden="true"
+                className="transition-transform duration-200 group-hover:translate-x-[3px]">
+                <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+          </div>
+        </a>
 
         {/* Footer web */}
         <p className="font-sans text-center text-xs text-muted pb-4 print:hidden">

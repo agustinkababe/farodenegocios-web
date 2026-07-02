@@ -4,6 +4,8 @@ import Link from "next/link";
 import { createServerClient } from "@/lib/supabase-server";
 import { SiteHeader } from "@/app/components/SiteHeader";
 import { SiteFooter } from "@/app/components/SiteFooter";
+import { AdSlot } from "@/app/components/ads/AdSlot";
+import { FiableAd } from "@/app/components/ads/FiableAd";
 import { asignarAutor } from "@/lib/autores";
 import type { Metadata } from "next";
 import type { ArticuloTipo } from "@/types";
@@ -183,7 +185,11 @@ export default async function ArticuloPage({ params }: Props) {
       <SiteHeader />
 
       <main className="flex-1">
-        <article className="max-w-3xl mx-auto px-6 py-14">
+        {/* Two-column layout: artículo + sidebar (sidebar visible xl+) */}
+        <div className="flex items-start">
+          {/* Columna principal */}
+          <div className="flex-1 min-w-0">
+            <article className="max-w-3xl mx-auto px-6 py-14">
 
           {/* Breadcrumb */}
           <nav
@@ -303,6 +309,20 @@ export default async function ArticuloPage({ params }: Props) {
             </div>
           )}
 
+          {/* Ad slot genérico in-article — entre el callout y la segunda mitad */}
+          {bodySecond && (
+            <div className="my-8 not-prose">
+              <AdSlot format="in-article" />
+            </div>
+          )}
+
+          {/* Aviso de fiable in-article — después del house ad, antes de continuar */}
+          {bodySecond && (
+            <div className="my-8 not-prose">
+              <FiableAd format="in-article" />
+            </div>
+          )}
+
           {/* Cuerpo — segunda mitad */}
           {bodySecond && (
             <div
@@ -311,54 +331,85 @@ export default async function ArticuloPage({ params }: Props) {
             />
           )}
 
-        </article>
+          {/* Aviso de fiable end-article — cierre del artículo, refuerzo post-contenido */}
+          <div className="mt-10 not-prose">
+            <FiableAd format="end-article" />
+          </div>
+
+            </article>
+
+            {/*
+              Leaderboard y relacionados van DENTRO de la columna principal (flex-1)
+              para que max-w-3xl mx-auto se alinee con el contenido del artículo.
+            */}
+
+            {/* ── Ad slot: leaderboard ── */}
+            <div className="border-t border-line px-6 py-5 bg-surface">
+              <div className="max-w-3xl mx-auto">
+                <AdSlot format="leaderboard" />
+              </div>
+            </div>
+
+            {/* ── Artículos relacionados ── */}
+            {relacionados.length > 0 && (
+              <section className="border-t border-line py-12 px-6">
+                <div className="max-w-3xl mx-auto">
+                  <h2 className="font-display text-[1.25rem] font-semibold text-ink mb-8">
+                    Artículos relacionados
+                  </h2>
+                  <div className="grid gap-px bg-line sm:grid-cols-3 rounded-[8px] overflow-hidden border border-line">
+                    {relacionados.map((r) => (
+                      <RelacionadoCard key={r.id} articulo={r} />
+                    ))}
+                  </div>
+                  <div className="mt-8">
+                    <Link
+                      href="/articulos"
+                      className="font-sans text-[13px] font-semibold text-navy-700 border border-line hover:border-navy-500 px-5 py-2.5 rounded-[6px] transition-colors duration-150 inline-block"
+                    >
+                      Ver todos los artículos →
+                    </Link>
+                  </div>
+                </div>
+              </section>
+            )}
+
+            {/* Fallback si no hay relacionados */}
+            {relacionados.length === 0 && (
+              <section className="border-t border-line py-10 px-6 bg-surface">
+                <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <div>
+                    <p className="font-display text-[1.1rem] font-semibold text-ink">
+                      Más artículos para tu negocio
+                    </p>
+                    <p className="font-sans text-[13px] text-muted mt-0.5">
+                      Guías y contexto para el día a día de la PyME argentina.
+                    </p>
+                  </div>
+                  <Link
+                    href="/articulos"
+                    className="font-sans text-[13px] font-semibold text-navy-700 border border-line hover:border-navy-500 px-5 py-2.5 rounded-[6px] transition-colors duration-150 whitespace-nowrap"
+                  >
+                    Ver todos →
+                  </Link>
+                </div>
+              </section>
+            )}
+
+          </div>{/* fin columna principal */}
+
+          {/* ── Sidebar — visible en desktop (xl+), oculto en mobile/tablet */}
+          <aside
+            className="hidden xl:flex flex-col gap-5 w-[300px] shrink-0 border-l border-line px-5 py-16 self-stretch"
+            aria-label="Publicidad lateral"
+          >
+            <div className="sticky top-20 flex flex-col gap-5">
+              <AdSlot format="rectangle" />
+              <FiableAd format="sidebar" />
+            </div>
+          </aside>
+        </div>{/* fin two-column */}
       </main>
-
-      {/* ── Artículos relacionados ── */}
-      {relacionados.length > 0 && (
-        <section className="border-t border-line py-12 px-6">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="font-display text-[1.25rem] font-semibold text-ink mb-8">
-              Artículos relacionados
-            </h2>
-            <div className="grid gap-px bg-line sm:grid-cols-3 rounded-[8px] overflow-hidden border border-line">
-              {relacionados.map((r) => (
-                <RelacionadoCard key={r.id} articulo={r} />
-              ))}
-            </div>
-            <div className="mt-8">
-              <Link
-                href="/articulos"
-                className="font-sans text-[13px] font-semibold text-navy-700 border border-line hover:border-navy-500 px-5 py-2.5 rounded-[6px] transition-colors duration-150 inline-block"
-              >
-                Ver todos los artículos →
-              </Link>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {/* Fallback si no hay relacionados */}
-      {relacionados.length === 0 && (
-        <section className="border-t border-line py-10 px-6 bg-surface">
-          <div className="max-w-3xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div>
-              <p className="font-display text-[1.1rem] font-semibold text-ink">
-                Más artículos para tu negocio
-              </p>
-              <p className="font-sans text-[13px] text-muted mt-0.5">
-                Guías y contexto para el día a día de la PyME argentina.
-              </p>
-            </div>
-            <Link
-              href="/articulos"
-              className="font-sans text-[13px] font-semibold text-navy-700 border border-line hover:border-navy-500 px-5 py-2.5 rounded-[6px] transition-colors duration-150 whitespace-nowrap"
-            >
-              Ver todos →
-            </Link>
-          </div>
-        </section>
-      )}
 
       <SiteFooter />
     </div>
